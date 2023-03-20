@@ -206,3 +206,13 @@ input {
     top: 50%;
     transform: translate(-50%, -50%);
 }
+
+.info-banner {
+    margin: 20px auto;
+    box-sizing: border-box;
+    width: 95%;
+    padding: 40px 20px;
+    text-align: center;
+    font-size: larger;
+    background-color: #ddd;
+}

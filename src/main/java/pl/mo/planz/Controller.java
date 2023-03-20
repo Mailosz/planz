@@ -253,6 +253,24 @@ public class Controller {
         return Boolean.toString(opt.get().isEditable());
     }
 
+    @GetMapping(value="documents/{uuid}/change/template/{templateId}")
+    public String changeDocTemplate(@PathVariable("uuid") UUID docId, @RequestParam(name = "token", required = false) String token, @PathVariable("templateId") UUID templateId) {
+
+        //"security"
+        adminOrThrow(token);
+
+        var docOpt = documentRepository.findById(docId);
+        var temOpt = templateRepository.findById(templateId);
+
+        if (docOpt.isPresent() && temOpt.isPresent()) {
+            docOpt.get().setTemplate(temOpt.get());
+            documentRepository.save(docOpt.get());
+            return "true";
+        } else {
+            return "false";
+        }
+    }
+
     @PostMapping(value="documents/{uuid}")
     public String updateDocument(@PathVariable("uuid") UUID id, @RequestBody DocumentDTO dto, @RequestParam(name = "token", required = false) String token) {
 
