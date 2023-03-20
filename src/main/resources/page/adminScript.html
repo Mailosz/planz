@@ -1,0 +1,29 @@
+<script>
+    function changePublic(event) {
+
+        fetch("documents/" + docId + "/change/public/" + event.target.checked + "?token=" + token).then((resp) => {
+            return resp.text();
+        }).then((text) => {
+            if (text == "true") {
+                event.target.checked = true;
+            } else if (text == "false") {
+                event.target.checked = false;
+            }
+        });
+
+    }
+
+    function changeEditable(event) {
+
+        fetch("documents/" + docId + "/change/editable/" + event.target.checked + "?token=" + token).then((resp) => {
+            return resp.text();
+        }).then((text) => {
+            if (text == "true") {
+                event.target.checked = true;
+            } else if (text == "false") {
+                event.target.checked = false;
+            }
+        });
+
+    }
+</script>

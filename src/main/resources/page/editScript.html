@@ -1,0 +1,39 @@
+<script>
+    var timeouts = {};
+
+    var token = document.getElementById("token-input").value;
+    var docId = document.getElementById("document-id-input").value;
+
+    function cancelTimeout(name) {
+        let timeout = timeouts[name];
+        if (timeout != null) {
+            clearTimeout(timeout);
+        }
+        timeouts[name] = null;
+    }
+
+    function resetTimeout(name, func) {
+        cancelTimeout(name);
+        timeouts[name] = setTimeout(() =>{func(); timeouts[name] = null;}, 1000);
+    };
+
+    function updateFieldValue(input) {
+        let url = "fields/" + docId + "/" + input.id + "?token=" + token;
+        let request = new Request(url, {
+            method: "PUT",
+            body: input.value,
+        });
+        fetch(request).then((resp) => {
+            console.log(resp);
+        });
+    };
+
+    function fieldInput(event) {
+        resetTimeout(event.target.getAttribute("name"), () => updateFieldValue(event.target))
+    }
+
+    function fieldChange(event) {
+        cancelTimeout(event.target.getAttribute("name"));
+        updateFieldValue(event.target);
+    }
+</script>

@@ -1,0 +1,208 @@
+body {
+    font-family: sans-serif;
+}
+
+#doc-container {
+    margin: auto;
+    
+}
+
+@media not print {
+    body {
+        background-color: #eee;
+    }
+
+    .page {
+        padding: 10mm 15mm;
+        max-width: 210mm;
+        min-height: 310mm;
+        background-color: white;
+        box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    }
+
+    .page.show-mode {
+        height: 310mm;
+        max-height: 310mm;
+    }
+}
+
+#top-panel {
+    padding: 10px 10px 20px 10px;
+}
+
+
+.week-header {
+    font-size: xx-large;
+    border-bottom: 2px solid black;
+    ;
+}
+
+table {
+    border-collapse: collapse;
+    table-layout: fixed;
+    width: 100%;
+}
+
+td {
+    padding: 4px 10px;
+    vertical-align: top;
+}
+
+
+.cleaning-duty {
+    font-size: x-large;
+    background: #ccc;
+    margin: 10px 0px;
+    padding: 4px;
+    text-align: center;
+}
+
+.edit-mode .cleaning-duty {
+    display: flex;
+}
+
+.meeting-table td:nth-child(1) {
+    width: 50px;
+}
+
+.meeting-table td:nth-child(2) {}
+
+.meeting-table td:nth-child(3) {
+    width: 100px;
+}
+
+.meeting-table td:nth-child(4) {
+    width: 180px;
+}
+
+
+.thursday-header {
+    margin-top: 20px;
+    font-size: xx-large;
+}
+
+.sunday-header {
+    margin-top: 20px;
+    font-size: xx-large;
+}
+
+
+.treasures-header {
+    font-weight: 600;
+    background: #888;
+    color: white;
+    text-transform: uppercase;
+}
+
+.ministry-header {
+    font-weight: 600;
+    background: #c99700;
+    color: white;
+    text-transform: uppercase;
+}
+
+.lifestyle-header {
+    font-weight: 600;
+    background: #940000;
+    color: white;
+    text-transform: uppercase;
+}
+
+.lecture-header {
+    font-weight: 600;
+    background: #457530;
+    color: white;
+    text-transform: uppercase;
+}
+
+.study-header {
+    font-weight: 600;
+    background: #66a5db;
+    color: white;
+    text-transform: uppercase;
+}
+
+
+.duration-col,
+.label-col {
+    padding-top: 6px;
+    text-align: right;
+    font-size: small;
+    font-weight: 600;
+}
+
+.helpers-table {
+    border: 1px solid black;
+    width: 95%;
+    margin: auto;
+}
+
+.helpers-table td {
+    border-left: 1px solid black;
+}
+
+.helpers-table tr:first-child {
+    background-color: #ddd;
+    font-weight: 600;
+}
+
+.flex-row {
+    display: flex;
+}
+
+.inline-label {
+    font-size: small;
+    font-weight: 600;
+}
+
+.helpers-table .input{
+    flex-grow: 1;
+}
+
+input {
+    min-width: 40px;
+    width: 100%;
+    font-size: medium;
+}
+
+@media print {
+    input {
+        border: none;
+        padding: 0;
+        margin: 0;
+    }
+}
+
+#prev-button, #next-button {
+    position: fixed;
+    top: 50%;
+    font-size: xx-large;
+    
+    transform: translateY(-50%);
+    height: max(20vh, 64px);
+    width: max(20vw, 64px);
+    background-color: rgba(128,128,128,0.2);
+    vertical-align: middle;
+    text-align: center;
+}
+
+#prev-button {
+    left: 0px;
+}
+
+#next-button {
+    right: 0px;
+}
+#prev-button:hover,#next-button:hover {
+    background-color: rgba(128,128,128,0.5);
+}
+#prev-button:active,#next-button:active {
+    background-color: rgba(128,128,128,0.7);
+}
+
+.central {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
