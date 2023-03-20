@@ -5,4 +5,13 @@ public class StringUtils {
         if (s == null) return null;
         return s.replace("\"", "\\\"");
     }
+
+    public static boolean isNullOrEmpty(String s) {
+        if (s == null) return true;
+        if (s.equals("")) {
+            return true;
+        }
+
+        return false;
+    }
 }

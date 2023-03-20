@@ -1,0 +1,67 @@
+
+<div class="plan">
+    <div class="week-header flex-row">Plan zebrań w tygodniu od @auto=tydzien-od@</div>
+    <div class="cleaning-duty"><span>Dyżur sprzątania sali w tygodniu od @auto=tydzien-od@ - </span><span>@name=nr-grupy|list=grupy|edit=edit@</span></div>
+    <div class="thursday-header flex-row">@name=w-tygodniu-title|edit=admin@</div>
+    <div class="info-banner">@name=w-tygodniu-informacja@</div>
+    <div class="sunday-header flex-row">NIEDZIELA | @auto=niedziela@</div>
+    <table class="meeting-table">
+        <tr>
+            <td class="duration-col"></td>
+            <td class="subject-col"></td>
+            <td class="label-col">@name=niedz-przew-lbl|edit=admin|default=Przewodniczący:@</td>
+            <td class="person-col">@name=niedz-przew|list=bracia|edit=edit@</td>
+        </tr>
+        <tr>
+            <td class="lecture-header"></td>
+            <td class="lecture-header">Wykład publiczny</td>
+        </tr>
+        <tr>
+            <td class="duration-col">@name=niedz-wyklad-czas|edit=admin|default=30 min@</td>
+            <td class="subject-col">@niedz-wyklad-temat|edit=edit@</td>
+            <td class="label-col">@name=niedz-wyklad-lbl|edit=admin|default=Mówca:@</td>
+            <td class="person-col">@name=niedz-mowca|list=bracia|edit=edit@</td>
+        </tr>
+        <tr>
+            <td class="study-header"></td>
+            <td class="study-header">Studium Strażnicy</td>
+        </tr>
+        <tr>
+            <td class="duration-col" rowspan="2">@name=niedz-studium-czas|edit=admin|default=60 min@</td>
+            <td class="subject-col" rowspan="2">@niedz-studium-temat|edit=edit@</td>
+            <td class="label-col">@name=niedz-studium-prow-lbl|edit=admin|default=Prowadzący:@</td>
+            <td class="person-col">@name=niedz-studium-prow|list=bracia|edit=edit@</td>
+        </tr>
+        <tr>
+            <td class="label-col">@name=niedz-studium-lektor-lbl|edit=admin|default=Lektor:@</td>
+            <td class="person-col">@niedz-studium-lektor|list=bracia|edit=edit@</td>
+        </tr>
+        <tr>
+            <td class="field-header"></td>
+            <td class="field-header"></td>
+        </tr>
+        <tr>
+            <td class="duration-col">•</td>
+            <td class="subject-col">@name=niedz-zbiorka|list=bracia|edit=admin|default=Zbiórka do służby kaznodziejskiej@</td>
+            <td class="label-col">@name=niedz-zbiorka-temat|edit=admin|default=Prowadzący:@</td>
+            <td class="person-col">@name=niedz-zbiorka-prow|list=bracia|edit=edit@</td>
+        </tr>
+    </table>
+    <table class="helpers-table">
+        <tr>
+            <td>Porządkowi</td>
+            <td>Nagłośnienie</td>
+            <td>Mikrofony</td>
+        </tr>
+        <tr>
+            <td>@name=niedz-porz-1|list=bracia|edit=edit@</td>
+            <td><div class="flex-row"><span class="inline-label">Mikser: </span>@name=niedz-mikser|list=bracia|edit=edit@</div></td>
+            <td><div class="flex-row"><span class="inline-label">Czarny: </span>@name=niedz-mikrofon-1|list=bracia|edit=edit@</div></td>
+        </tr>
+        <tr>
+            <td>@name=niedz-porz-2|list=bracia|edit=edit@</td>
+            <td><div class="flex-row"><span class="inline-label">Multimedia: </span>@name=niedz-multimedia|list=bracia|edit=edit@</div></td>
+            <td><div class="flex-row"><span class="inline-label">Niebieski: </span>@name=niedz-mikrofon-2|list=bracia|edit=edit@</div></td>
+        </tr>
+    </table>
+</div>

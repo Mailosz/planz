@@ -375,7 +375,7 @@ public class Controller {
         
 
 
-        return PageBuilder.buildPage(isAdmin, isEdit, prev, next, content, doc, token);
+        return PageBuilder.buildPage(isAdmin, isEdit, prev, next, content, doc, token, templateRepository);
     }
 
     @GetMapping(value="documents")

@@ -52,7 +52,7 @@ public class PageBuilder {
         
     }
 
-    public static String buildPage(boolean isAdmin, boolean isEdit, String prev, String next, String document, DocumentModel doc, String token) {
+    public static String buildPage(boolean isAdmin, boolean isEdit, String prev, String next, String document, DocumentModel doc, String token, TemplateRepository templateRepository) {
         
         String content = htmlStart;
 
@@ -60,6 +60,14 @@ public class PageBuilder {
             content += "<div id=\"top-panel\">";
             content += "<label title=\"Udostępnij wszystkim\"><input type=\"checkbox\" id=\"showcheckbox\" class=\"switch\" " + (doc.isPublic()?"checked ":"") + "onchange=\"changePublic(event);\")>Pokaż</label>&emsp;";
             content += "<label title=\"Zezwól na edycję\"><input type=\"checkbox\" id=\"editcheckbox\" class=\"switch\" " + (doc.isEditable()?"checked ":"") + "onchange=\"changeEditable(event);\")>Edycja</label>";
+            
+            List<TemplateModel> templates = templateRepository.findAll();
+            content += "<select onchange=\"templateChange(event)\">";
+            for (var template : templates) {
+                content += "<option" + (template == doc.getTemplate()?" selected":"") + " value=\"" + template.getId().toString() + "\">" + (StringUtils.isNullOrEmpty(template.getName())?template.getId().toString():template.getName()) + "</option>";
+            }
+            content += "</select>";
+
             content += "</div>";
             content += adminScript;
         }
