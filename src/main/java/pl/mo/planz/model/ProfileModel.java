@@ -23,8 +23,8 @@ public class ProfileModel {
     @Setter
     String name;
 
-    @ManyToMany
-    @Getter
-    @Setter
-    Set<IdentityModel> identities; 
+    // @ManyToMany
+    // @Getter
+    // @Setter
+    // Set<IdentityModel> identities; 
 }

@@ -366,7 +366,7 @@ public class Controller {
 
         String content = "";
         if (isAdmin || (isEdit && doc.isEditable())) {
-            Map<UUID, String> valueMap = fieldValueRepository.getAllForDocumentId(doc.getId()).stream().collect(Collectors.toMap((fv) -> fv.getField().getId(), (fv) -> fv.getValue()));
+            Map<UUID, String> valueMap = fieldValueRepository.getAllForDocumentId(doc.getId()).stream().filter((v) -> v.getValue() != null).collect(Collectors.toMap((fv) -> fv.getField().getId(), (fv) -> fv.getValue()));
         
             content = PageBuilder.buildDocumentForEdit(doc, valueMap, profiles, token);
         } else {
@@ -374,7 +374,7 @@ public class Controller {
 
                 if (doc.getGeneratedContent() == null) {
 
-                    Map<UUID, String> valueMap = fieldValueRepository.getAllForDocumentId(doc.getId()).stream().collect(Collectors.toMap((fv) -> fv.getField().getId(), (fv) -> fv.getValue()));
+                    Map<UUID, String> valueMap = fieldValueRepository.getAllForDocumentId(doc.getId()).stream().filter((v) -> v.getValue() != null).collect(Collectors.toMap((fv) -> fv.getField().getId(), (fv) -> fv.getValue()));
                     content = PageBuilder.buildTemplateForView(doc, valueMap);
 
                     doc.setGeneratedContent(content);
@@ -413,7 +413,7 @@ public class Controller {
 
     @PutMapping(value="fields/{docId}/{fieldId}")
     @ResponseStatus(code = HttpStatus.OK)
-    public void updateFieldValue(@PathVariable("docId") UUID docId, @PathVariable("fieldId") UUID fieldId, @RequestParam("token") String token, @RequestBody String value) {
+    public void updateFieldValue(@PathVariable("docId") UUID docId, @PathVariable("fieldId") UUID fieldId, @RequestParam("token") String token, @RequestBody(required = false) String value) {
 
         var identity = identityRepository.findFromToken(token);
         if (!identity.isPresent()) {
@@ -447,6 +447,10 @@ public class Controller {
 
         if (!profiles.contains("admin") && (!model.getDocument().isEditable() || model.getField().getEditProfile() == null || !profiles.contains(model.getField().getEditProfile().getName()))) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+
+        if (value == null) {
+            value = "";
         }
 
         model.setValue(value);
