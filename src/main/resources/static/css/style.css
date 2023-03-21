@@ -52,7 +52,8 @@ td {
 .cleaning-duty {
     font-size: x-large;
     background: #ccc;
-    margin: 10px 0px;
+    margin: 10px auto;
+    width: 95%;
     padding: 4px;
     text-align: center;
 }

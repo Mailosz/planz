@@ -7,6 +7,8 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.HashSet;
 import java.util.List;
@@ -180,12 +182,28 @@ public class PageBuilder {
         return templateBuffer.toString();
     }
 
+    static SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.YYYY");
 
     private static String getFieldAutoValue(DocumentModel doc, String name) {
+        
         return switch (name) {
-            case "tydzien-od" -> doc.getWeek().toString();
-            case "czwartek" -> doc.getWeek().plus(3, ChronoUnit.DAYS).toString();
-            case "niedziela" -> doc.getWeek().plus(6, ChronoUnit.DAYS).toString();
+            case "tydzien-od" -> doc.getWeek().getDayOfMonth() + " " + switch (doc.getWeek().getMonthValue()) {
+                case 1 -> "stycznia";
+                case 2 -> "lutego";
+                case 3 -> "marca";
+                case 4 -> "kwietnia";
+                case 5 -> "maja";
+                case 6 -> "czerwca";
+                case 7 -> "lipca";
+                case 9 -> "sierpnia";
+                case 8 -> "września";
+                case 10 -> "października";
+                case 11 -> "listopada";
+                case 12 -> "grudnia";
+                default -> "";
+            };
+            case "czwartek" -> dateFormat.format(doc.getWeek().plus(3, ChronoUnit.DAYS));
+            case "niedziela" -> dateFormat.format(doc.getWeek().plus(6, ChronoUnit.DAYS));
             default -> "";
         };
     }

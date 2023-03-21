@@ -293,7 +293,7 @@ public class Controller {
     @GetMapping(value="/")
     public String openCurrentDocument(@RequestParam(name = "token", required = false) String token) {
 
-        if (token == null) throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        //if (token == null) throw new ResponseStatusException(HttpStatus.FORBIDDEN);
 
         var opt = documentRepository.findCurrentForDate(LocalDate.now());
         
@@ -316,14 +316,18 @@ public class Controller {
     @GetMapping(value="/{docId}")
     public String openDocument(@PathVariable("docId") UUID docId, @RequestParam(name = "token", required = false) String token, HttpServletResponse response) {
 
-        if (token == null) throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        //if (token == null) throw new ResponseStatusException(HttpStatus.FORBIDDEN);
 
         var opt = documentRepository.findById(docId);
         
         if (opt.isPresent()) {
             return createView(opt.get(), token);
         } else {
-            response.setHeader("Location", "/?token=" + token);
+            if (token != null) {
+                response.setHeader("Location", "/?token=" + token);
+            } else {
+                response.setHeader("Location", "/");
+            }
             response.setStatus(307);
             return "";
         }
@@ -421,6 +425,7 @@ public class Controller {
         }
         Set<String> profiles = getProfiles(identity);
 
+        //TODO: get list and remove duplicates
         var opt = fieldValueRepository.findByDocAndField(docId, fieldId);
         
         FieldValueModel model;
