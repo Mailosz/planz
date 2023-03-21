@@ -202,8 +202,8 @@ public class PageBuilder {
                 case 12 -> "grudnia";
                 default -> "";
             };
-            case "czwartek" -> dateFormat.format(doc.getWeek().plus(3, ChronoUnit.DAYS));
-            case "niedziela" -> dateFormat.format(doc.getWeek().plus(6, ChronoUnit.DAYS));
+            case "czwartek" -> doc.getWeek().plus(3, ChronoUnit.DAYS).toString();
+            case "niedziela" -> doc.getWeek().plus(6, ChronoUnit.DAYS).toString();
             default -> "";
         };
     }
