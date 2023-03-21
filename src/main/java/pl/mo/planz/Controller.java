@@ -47,7 +47,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @CrossOrigin
 public class Controller {
 
-    public static DocumentModel currentDocument;
+    public static UUID currentDocumentId;
     
     @Autowired
     TemplateRepository templateRepository;
@@ -316,16 +316,16 @@ public class Controller {
     }
 
     private static Optional<DocumentModel> getCurrentDocument(DocumentRepository docRepo) {
-        if (currentDocument != null) {
+        if (currentDocumentId != null) {
             
         } else {
-            currentDocument = findCurrentDocument(docRepo);
+            currentDocumentId = findCurrentDocument(docRepo);
         }
 
-        return Optional.ofNullable(currentDocument);
+        return docRepo.findById(currentDocumentId);
     }
 
-    private static DocumentModel findCurrentDocument(DocumentRepository docRepo) {
+    private static UUID findCurrentDocument(DocumentRepository docRepo) {
         List<DocumentModel> docs = docRepo.findAll();
         
         var now = LocalDate.now();
@@ -343,7 +343,7 @@ public class Controller {
             }
         }
 
-        return current;
+        return current.getId();
     }
 
     @GetMapping(value="/{docId}")
