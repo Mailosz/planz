@@ -182,7 +182,7 @@ public class PageBuilder {
         return templateBuffer.toString();
     }
 
-    static SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.YYYY");
+    static DateTimeFormatter dateFormattter = DateTimeFormatter.ofPattern("dd.MM.YYYY");
 
     private static String getFieldAutoValue(DocumentModel doc, String name) {
         
@@ -202,8 +202,8 @@ public class PageBuilder {
                 case 12 -> "grudnia";
                 default -> "";
             };
-            case "czwartek" -> doc.getWeek().plus(3, ChronoUnit.DAYS).toString();
-            case "niedziela" -> doc.getWeek().plus(6, ChronoUnit.DAYS).toString();
+            case "czwartek" -> doc.getWeek().plus(3, ChronoUnit.DAYS).format(dateFormattter);
+            case "niedziela" -> doc.getWeek().plus(6, ChronoUnit.DAYS).format(dateFormattter);
             default -> "";
         };
     }
