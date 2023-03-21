@@ -46,6 +46,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @RestController
 @CrossOrigin
 public class Controller {
+
+    public static DocumentModel currentDocument;
     
     @Autowired
     TemplateRepository templateRepository;
@@ -295,7 +297,7 @@ public class Controller {
 
         //if (token == null) throw new ResponseStatusException(HttpStatus.FORBIDDEN);
 
-        var opt = documentRepository.findCurrentForDate(LocalDate.now());
+        Optional<DocumentModel> opt = getCurrentDocument(documentRepository);
         
         DocumentModel doc = null;
         if (opt.isPresent()) {
@@ -311,6 +313,37 @@ public class Controller {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
         return createView(doc, token);
+    }
+
+    private static Optional<DocumentModel> getCurrentDocument(DocumentRepository docRepo) {
+        if (currentDocument != null) {
+            
+        } else {
+            currentDocument = findCurrentDocument(docRepo);
+        }
+
+        return Optional.ofNullable(currentDocument);
+    }
+
+    private static DocumentModel findCurrentDocument(DocumentRepository docRepo) {
+        List<DocumentModel> docs = docRepo.findAll();
+        
+        var now = LocalDate.now();
+
+        DocumentModel current = null;
+        for (var doc : docs) {
+            if (now.isBefore(doc.getWeek())) {
+                if (current == null || current.getWeek().isAfter(doc.getWeek())) {
+                    current = doc;
+                }
+            } else {
+                if (current == null || current.getWeek().isBefore(doc.getWeek())) {
+                    current = doc;
+                }
+            }
+        }
+
+        return current;
     }
 
     @GetMapping(value="/{docId}")
