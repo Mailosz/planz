@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -24,7 +25,7 @@ public class ValueListModel {
     @Setter
     String name;
 
-    @OneToMany(mappedBy = "list", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "list", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @Getter
     @Setter
     List<ValueListItemModel> values;
