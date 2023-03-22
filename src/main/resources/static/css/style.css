@@ -7,17 +7,33 @@ body {
     
 }
 
+.page {
+    box-sizing: border-box;
+}
+
 @media not print {
-    body {
-        background-color: #eee;
+    @media (min-width: 800px) {
+
+        body {
+            background-color: #eee;
+        }
+
+
+        .page {
+            padding: 10mm 15mm;
+            max-width: 210mm;
+            min-height: 310mm;
+            background-color: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
     }
 
-    .page {
-        padding: 10mm 15mm;
-        max-width: 210mm;
-        min-height: 310mm;
-        background-color: white;
-        box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    #prev-button {
+        display: none;
+    }
+
+    #next-button {
+        display: none;
     }
 
     .page.show-mode {
@@ -34,7 +50,6 @@ body {
 .week-header {
     font-size: xx-large;
     border-bottom: 2px solid black;
-    ;
 }
 
 table {
@@ -52,7 +67,7 @@ td {
 .cleaning-duty {
     font-size: x-large;
     background: #ccc;
-    margin: 10px auto;
+    margin: 20px auto;
     width: 95%;
     padding: 4px;
     text-align: center;
@@ -63,27 +78,28 @@ td {
 }
 
 .meeting-table td:nth-child(1) {
-    width: 50px;
+    width: 6%;
 }
 
 .meeting-table td:nth-child(2) {}
 
 .meeting-table td:nth-child(3) {
-    width: 100px;
+    width: 13%;
+    overflow: hidden;
 }
 
 .meeting-table td:nth-child(4) {
-    width: 180px;
+    width: 22%;
 }
 
 
 .thursday-header {
-    margin-top: 20px;
+    margin-top: 36px;
     font-size: xx-large;
 }
 
 .sunday-header {
-    margin-top: 20px;
+    margin-top: 36px;
     font-size: xx-large;
 }
 
