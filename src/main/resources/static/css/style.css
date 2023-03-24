@@ -28,14 +28,6 @@ body {
         }
     }
 
-    #prev-button {
-        display: none;
-    }
-
-    #next-button {
-        display: none;
-    }
-
     .page.show-mode {
         height: 310mm;
         max-height: 310mm;
@@ -187,6 +179,12 @@ input {
         border: none;
         padding: 0;
         margin: 0;
+    }
+
+    .top-panel,
+    #prev-button,
+    #next-button {
+        display: none;
     }
 }
 
