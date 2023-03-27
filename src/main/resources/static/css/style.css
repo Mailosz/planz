@@ -26,11 +26,11 @@ body {
             background-color: white;
             box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
-    }
 
-    .page.show-mode {
-        height: 310mm;
-        max-height: 310mm;
+        .page.show-mode {
+            height: 310mm;
+            max-height: 310mm;
+        }
     }
 }
 
