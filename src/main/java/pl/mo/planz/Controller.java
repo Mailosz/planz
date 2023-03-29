@@ -7,8 +7,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import pl.mo.planz.dto.DocumentDTO;
 import pl.mo.planz.dto.DocumentResponseDTO;
+import pl.mo.planz.dto.FieldOptsDTO;
 import pl.mo.planz.dto.TemplateFieldDTO;
 import pl.mo.planz.model.DocumentModel;
+import pl.mo.planz.model.FieldType;
 import pl.mo.planz.model.FieldValueHistoryModel;
 import pl.mo.planz.model.FieldValueModel;
 import pl.mo.planz.model.IdentityModel;
@@ -18,6 +20,8 @@ import pl.mo.planz.model.ValueListModel;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.Period;
+import java.time.chrono.ChronoPeriod;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,10 +33,13 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -98,8 +105,8 @@ public class Controller {
             }
 
             tfm.setTemplate(tm);
-            tfm.setAutoMethod(field.getAuto());
             tfm.setName(field.getName());
+            tfm.setType(Optional.ofNullable(field.getType()).orElse(FieldType.TEXT));
             tfm.setPos(field.getPos());
             tfm.setDefaultValue(Optional.ofNullable(field.getDefaultValue()).orElse(""));
             tfm.setPublic(Optional.ofNullable(field.getIsPublic()).orElse(false));
@@ -130,12 +137,13 @@ public class Controller {
     }
 
     @PostMapping(value="templates")
-    public String postTemplate(@RequestBody String template, @RequestParam(name = "token", required = false) String token) {
+    public String postTemplate(@RequestBody String template, @RequestParam(name = "token", required = false) String token, @RequestParam(name = "name", required = false) String name) {
 
         //"security"
         adminOrThrow(token);
         
         TemplateModel tm = new TemplateModel();
+        if (name != null) tm.setName(name);
 
         try {
             parseTemplateAndSave(template, tm);
@@ -149,7 +157,7 @@ public class Controller {
     }
 
     @PutMapping(value="templates/{uuid}")
-    public String updateTemplate(@PathVariable("uuid") UUID id, @RequestParam(name = "token", required = false) String token, @RequestBody String content) {
+    public String updateTemplate(@PathVariable("uuid") UUID id, @RequestParam(name = "token", required = false) String token, @RequestParam(name = "name", required = false) String name, @RequestBody(required = false) String content) {
         
         //"security"
         adminOrThrow(token);
@@ -157,12 +165,15 @@ public class Controller {
         var templateOpt = templateRepository.findById(id);
 
         if (templateOpt.isPresent()) {
-            try {
-                parseTemplateAndSave(content, templateOpt.get());
-            } catch (TemplateParsingException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Parsing error: " + e.getDesc());
+            if (name != null) templateOpt.get().setName(name);
+            if (!StringUtils.isNullOrEmpty(content)) {
+                try {
+                    parseTemplateAndSave(content, templateOpt.get());
+                } catch (TemplateParsingException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                    throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Parsing error: " + e.getDesc());
+                }
             }
             return "ok";
         } else {
@@ -403,7 +414,7 @@ public class Controller {
 
         String content = "";
         if (isAdmin || (isEdit && doc.isEditable())) {
-            Map<UUID, String> valueMap = fieldValueRepository.getAllForDocumentId(doc.getId()).stream().filter((v) -> v.getValue() != null).collect(Collectors.toMap((fv) -> fv.getField().getId(), (fv) -> fv.getValue(), (val1, val2) -> {return val2;}));
+            Map<UUID, FieldValueModel> valueMap = fieldValueRepository.getAllForDocumentId(doc.getId()).stream().filter((v) -> v.getValue() != null).collect(Collectors.toMap((fv) -> fv.getField().getId(), (fv) -> fv, (val1, val2) -> {return val2;}));
         
             content = PageBuilder.buildDocumentForEdit(doc, valueMap, profiles, token);
         } else {
@@ -411,7 +422,7 @@ public class Controller {
 
                 if (doc.getGeneratedContent() == null) {
 
-                    Map<UUID, String> valueMap = fieldValueRepository.getAllForDocumentId(doc.getId()).stream().filter((v) -> v.getValue() != null).collect(Collectors.toMap((fv) -> fv.getField().getId(), (fv) -> fv.getValue(), (val1, val2) -> {return val2;}));
+                    Map<UUID, FieldValueModel> valueMap = fieldValueRepository.getAllForDocumentId(doc.getId()).stream().filter((v) -> v.getValue() != null).collect(Collectors.toMap((fv) -> fv.getField().getId(), (fv) -> fv, (val1, val2) -> {return val2;}));
                     content = PageBuilder.buildTemplateForView(doc, valueMap);
 
                     doc.setGeneratedContent(content);
@@ -425,9 +436,6 @@ public class Controller {
             }
 
         }
-
-
-        
 
 
         return PageBuilder.buildPage(isAdmin, isEdit, prev, next, content, doc, token, templateRepository);
@@ -448,7 +456,8 @@ public class Controller {
 
 
 
-    @PutMapping(value="fields/{docId}/{fieldId}")
+    @PutMapping(value="values/{docId}/{fieldId}")
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     @ResponseStatus(code = HttpStatus.OK)
     public void updateFieldValue(@PathVariable("docId") UUID docId, @PathVariable("fieldId") UUID fieldId, @RequestParam("token") String token, @RequestBody(required = false) String value) {
 
@@ -458,6 +467,7 @@ public class Controller {
         }
         Set<String> profiles = getProfiles(identity);
 
+
         //TODO: get list and remove duplicates
         var opt = fieldValueRepository.findByDocAndField(docId, fieldId);
         
@@ -466,21 +476,19 @@ public class Controller {
             model = opt.get();
 
             //saving history of edits
-            // FieldValueHistoryModel fvh = new FieldValueHistoryModel();
-            // fvh.setField(model);
-            // fvh.setValue(model.getValue());
-            // fvh.setEditIdentity(model.getEditIdentity());
-            // fvh.setEditTime(model.getEditTime());
+            FieldValueHistoryModel fvh = new FieldValueHistoryModel();
+            fvh.setField(model);
+            fvh.setValue(model.getValue());
+            fvh.setEditIdentity(model.getEditIdentity());
+            fvh.setEditTime(model.getEditTime());
 
-            // historyRepository.save(fvh);
+            historyRepository.save(fvh);
 
         } else {
             var doc = documentRepository.findById(docId).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "No document"));
             var field = fieldRepository.findById(fieldId).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "No field"));
 
-            model = new FieldValueModel();
-            model.setDocument(doc);
-            model.setField(field);
+            model = newFieldValueModel(doc, field);
         }
 
         if (!profiles.contains("admin") && (!model.getDocument().isEditable() || model.getField().getEditProfile() == null || !profiles.contains(model.getField().getEditProfile().getName()))) {
@@ -503,6 +511,60 @@ public class Controller {
         }
     }
 
+    private FieldValueModel newFieldValueModel(DocumentModel doc, TemplateFieldModel field) {
+
+        var model = new FieldValueModel();
+        model.setType(field.getType());
+        model.setDocument(doc);
+        model.setField(field);
+
+        return model;
+    }
+
+    @PutMapping(value="fields/{docId}/{fieldId}")
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @ResponseStatus(code = HttpStatus.OK)
+    public void updateFieldType(@PathVariable("docId") UUID docId, @PathVariable("fieldId") UUID fieldId, @RequestParam("token") String token, @RequestBody(required = true) FieldOptsDTO opts) {
+
+        var identity = identityRepository.findFromToken(token);
+        if (!identity.isPresent()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+        Set<String> profiles = getProfiles(identity);
+
+
+        var opt = fieldValueRepository.findByDocAndField(docId, fieldId);
+        
+        FieldValueModel model;
+        if (opt.isPresent()) {
+            model = opt.get();
+
+            //TODO: saving history of edits
+
+        } else {
+            var doc = documentRepository.findById(docId).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "No document"));
+            var field = fieldRepository.findById(fieldId).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "No field"));
+
+            model = newFieldValueModel(doc, field);
+        }
+
+        if (!profiles.contains("admin")) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+
+        //change
+        if (opts.getType() != null) {
+            model.setType(opts.getType());
+        }
+
+        fieldValueRepository.save(model);
+
+        if (model.getDocument().getGeneratedContent() != null) {
+            model.getDocument().setGeneratedContent(null);
+            documentRepository.save(model.getDocument());
+        }
+    }
+
 
     private Set<String> getProfiles(Optional<IdentityModel> identity) {
         if (identity.isPresent()) {
@@ -510,6 +572,66 @@ public class Controller {
         } else {
             return new HashSet<String>();
         }
+    }
+
+    /**
+     * Odświerzanie wszystkiego
+     * @param token
+     */
+    @PostMapping(value="update")
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @ResponseStatus(code = HttpStatus.OK)
+    public void update(@RequestParam("token") String token) {
+        adminOrThrow(token);
+
+        int dayOfWeek = LocalDate.now().getDayOfWeek().getValue() - 1;
+        LocalDate weekStart = LocalDate.now().minusDays(dayOfWeek);
+        List<LocalDate> weeks = weekStart.datesUntil(weekStart.plusMonths(2), Period.ofWeeks(1)).collect(Collectors.toList());
+        LocalDate minimumDate = LocalDate.now().minusMonths(2);
+
+        List<DocumentModel> docs = documentRepository.findAll();
+
+        for (var doc : docs) {
+            if (doc.getWeek().isBefore(minimumDate)) {
+                if (doc.getNext() != null) doc.getNext().setPrev(null);
+                if (doc.getPrev() != null) doc.getPrev().setNext(null);
+                documentRepository.delete(doc);
+            }
+        }
+
+        DocumentModel previous = null;
+        for (var week : weeks) {
+
+            var docOpt = docs.stream().filter((d) -> d.getWeek().isEqual(week)).findFirst();
+            DocumentModel doc;
+            if (docOpt.isPresent()) {
+
+                doc = docOpt.get();
+
+                if (previous != null) {
+                    doc.setPrev(previous);
+                    previous.setNext(doc);
+                }
+
+            } else { // create new document
+                doc = new DocumentModel();
+
+                doc.setWeek(week);
+                doc.setTemplate(templateRepository.findAll().get(0));
+
+                doc.setPrev(previous);
+                if (previous != null) {
+                    previous.setNext(doc);
+                }
+                
+                documentRepository.save(doc);
+                previous = doc;
+            }
+
+            previous = doc;
+        };
+
+
     }
 
     @GetMapping(value="test") 

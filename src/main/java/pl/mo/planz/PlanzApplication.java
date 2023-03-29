@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 
 @SpringBootApplication
-public class PlanzApplication extends SpringBootServletInitializer {
+public class PlanzApplication extends SpringBootServletInitializer  {
 
 	public static void main(String[] args) {
 		SpringApplication.run(PlanzApplication.class, args);

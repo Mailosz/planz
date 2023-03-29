@@ -20,6 +20,8 @@ import java.util.UUID;
 import org.springframework.stereotype.Component;
 
 import pl.mo.planz.model.DocumentModel;
+import pl.mo.planz.model.FieldType;
+import pl.mo.planz.model.FieldValueModel;
 import pl.mo.planz.model.TemplateFieldModel;
 import pl.mo.planz.model.TemplateModel;
 import pl.mo.planz.model.ValueListModel;
@@ -62,14 +64,16 @@ public class PageBuilder {
             content += "<div id=\"top-panel\">";
             content += "<label title=\"Udostępnij wszystkim\"><input type=\"checkbox\" id=\"showcheckbox\" class=\"switch\" " + (doc.isPublic()?"checked ":"") + "onchange=\"changePublic(event);\")>Pokaż</label>&emsp;";
             content += "<label title=\"Zezwól na edycję\"><input type=\"checkbox\" id=\"editcheckbox\" class=\"switch\" " + (doc.isEditable()?"checked ":"") + "onchange=\"changeEditable(event);\")>Edycja</label>&emsp;";
-            
+
+
             List<TemplateModel> templates = templateRepository.findAll();
             content += "<label>Szablon: <select onchange=\"templateChange(event)\">";
             for (var template : templates) {
                 content += "<option" + (template == doc.getTemplate()?" selected":"") + " value=\"" + template.getId().toString() + "\">" + (StringUtils.isNullOrEmpty(template.getName())?template.getId().toString():template.getName()) + "</option>";
             }
-            content += "</select></label>";
+            content += "</select></label>&emsp;";
 
+            content += "<button onclick='update()'>Odświerz</button>";
             content += "</div>";
             content += adminScript;
         }
@@ -100,7 +104,7 @@ public class PageBuilder {
         return content;
     }
 
-    public static String buildDocumentForEdit(DocumentModel docModel, Map<UUID, String> valueMap, Set<String> profiles, String token) {
+    public static String buildDocumentForEdit(DocumentModel docModel, Map<UUID, FieldValueModel> valueMap, Set<String> profiles, String token) {
 
         String helpInputs = "<input type=\"hidden\" id=\"token-input\" value=\"" + token + "\">"
             + "<input type=\"hidden\" id=\"document-id-input\" value=\"" + docModel.getId() + "\">";
@@ -124,20 +128,22 @@ public class PageBuilder {
                 listname = "list=\"" + field.getDatalist().getName() + "\"";
             }
 
-            if (field.getAutoMethod() != null) {
-                templateBuffer.insert(field.getPos(), getFieldAutoValue(docModel, field.getAutoMethod()));
-            } else if (!isAdmin && (field.getEditProfile() == null || !profiles.contains(field.getEditProfile().getName()))) { // just value
-                var value = valueMap.get(field.getId());
-                if (value == null) {
-                    value = field.getDefaultValue();
-                }
-                templateBuffer.insert(field.getPos(), value);
+            if (!isAdmin && (field.getEditProfile() == null || !profiles.contains(field.getEditProfile().getName()))) { // just value
+
+                String staticValue = getStaticValue(field, docModel, valueMap);
+
+                templateBuffer.insert(field.getPos(), staticValue);
             } else { // edit
-                var value = valueMap.get(field.getId());
-                if (value == null) {
-                    value = field.getDefaultValue();
+                var valueModel = valueMap.get(field.getId());
+
+                String input = getEditValue(field, docModel, valueModel, listname);
+                
+                if (isAdmin) {
+                    input = "<div class=\"edit-hud admin\" >" + input + "<div class='more' onclick=\"showAdminPopup('" + field.getId().toString() + "', '" + (valueModel!= null?valueModel.getId():"") + "', event)\">...</div></div>";
+                } else {
+                    input = "<div class=\"edit-hud\" >" + input + "</div>";
                 }
-                String input = String.format("<input type=\"text\" id=\"%1$s\" name=\"%2$s\" %3$s class=\"user-editable-field\" value=\"%4$s\" maxlength=\"160\" oninput=\"fieldInput(event)\" onchange=\"fieldChange(event)\">", field.getId(), field.getName(), listname, StringUtils.escapeQuotes(value));
+
                 templateBuffer.insert(field.getPos(), input);
             }
         }
@@ -158,7 +164,68 @@ public class PageBuilder {
         return helpInputs + sb.toString() + templateBuffer.toString();
     }
 
-    public static String buildTemplateForView(DocumentModel docModel, Map<UUID, String> valueMap) {
+    private static String getEditValue(TemplateFieldModel field, DocumentModel docModel, FieldValueModel valueModel, String listname) {
+
+        String value = null;
+        FieldType type = null;
+        if (valueModel != null) {
+            if (valueModel.getValue() != null) {
+                value = valueModel.getValue();
+            }
+            if (valueModel.getType() != null) {
+                type = valueModel.getType();
+            }
+        }
+
+        if (value == null) {
+            value = field.getDefaultValue();
+        }
+
+        if (type == null) {
+            type = field.getType();
+        }
+
+        switch (type) {
+            case AUTO:
+                return getFieldAutoValue(docModel, value);
+            default:
+                return String.format("<input type=\"text\" id=\"%1$s\" name=\"%2$s\" %3$s class=\"user-editable-field\" value=\"%4$s\" maxlength=\"160\" oninput=\"fieldInput(event)\" onchange=\"fieldChange(event)\">", field.getId(), field.getName(), listname, StringUtils.escapeHTML(StringUtils.escapeQuotes(value)));
+        }
+    }
+
+    private static String getStaticValue(TemplateFieldModel field, DocumentModel docModel, Map<UUID, FieldValueModel> valueMap) {
+
+        var valueModel = valueMap.get(field.getId());
+        String value = null;
+        FieldType type = null;
+        if (valueModel != null) {
+            if (valueModel.getValue() != null) {
+                value = valueModel.getValue();
+            }
+            if (valueModel.getType() != null) {
+                type = valueModel.getType();
+            }
+        }
+
+        if (value == null) {
+            value = field.getDefaultValue();
+        }
+
+        if (type == null) {
+            type = field.getType();
+        }
+
+        switch (type) {
+            case AUTO:
+                return getFieldAutoValue(docModel, value);
+            case TEXT:
+                return StringUtils.escapeHTML(value);
+            default:
+                return value;
+        }
+    }
+
+    public static String buildTemplateForView(DocumentModel docModel, Map<UUID, FieldValueModel> valueMap) {
 
         List<TemplateFieldModel> fields = docModel.getTemplate().getFields();
         fields.sort((f1, f2) -> Integer.compare(f2.getPos(), f1.getPos()));
@@ -167,16 +234,9 @@ public class PageBuilder {
         StringBuffer templateBuffer = new StringBuffer(template);
         for (var field : fields) {
 
+            String staticValue = getStaticValue(field, docModel, valueMap);
 
-            if (field.getAutoMethod() != null) {
-                templateBuffer.insert(field.getPos(), getFieldAutoValue(docModel, field.getAutoMethod()));
-            } else  {
-                var value = valueMap.get(field.getId());
-                if (value == null) {
-                    value = field.getDefaultValue();
-                }
-                templateBuffer.insert(field.getPos(), value);
-            } 
+            templateBuffer.insert(field.getPos(), staticValue);
         }
 
         return templateBuffer.toString();
@@ -202,7 +262,12 @@ public class PageBuilder {
                 case 12 -> "grudnia";
                 default -> "";
             };
+            case "poniedziałek" -> doc.getWeek().plus(0, ChronoUnit.DAYS).format(dateFormattter);
+            case "wtorek" -> doc.getWeek().plus(1, ChronoUnit.DAYS).format(dateFormattter);
+            case "środa" -> doc.getWeek().plus(2, ChronoUnit.DAYS).format(dateFormattter);
             case "czwartek" -> doc.getWeek().plus(3, ChronoUnit.DAYS).format(dateFormattter);
+            case "piątek" -> doc.getWeek().plus(4, ChronoUnit.DAYS).format(dateFormattter);
+            case "sobota" -> doc.getWeek().plus(5, ChronoUnit.DAYS).format(dateFormattter);
             case "niedziela" -> doc.getWeek().plus(6, ChronoUnit.DAYS).format(dateFormattter);
             default -> "";
         };

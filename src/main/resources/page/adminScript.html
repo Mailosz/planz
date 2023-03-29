@@ -1,3 +1,10 @@
+<script type="module">
+    import {PlacementHelper} from './js/PlacementHelper.js';
+    
+    window.placeElement = (element, anchor, placement, options) => {
+        PlacementHelper.computePosition(element, anchor, placement, options);
+    }
+</script>
 <script>
     function changePublic(event) {
 
@@ -34,6 +41,48 @@
             if (text == "true") {
                 location.reload();
             }
+        });
+    }
+
+    function updateFieldOpts(input) {
+        let url = "fields/" + docId + "/" + input.id + "?token=" + token;
+        let request = new Request(url, {
+            method: "PUT",
+            body: input.value,
+        });
+        fetch(request).then((resp) => {
+            if (resp.ok) {
+                showResultPopup("success-popup", "Zapisano zmianę");
+            } else {
+                showResultPopup("fail-popup", "Błąd zapisu");
+            }
+            console.log(resp);
+        });
+    };
+
+    function showAdminPopup(fieldId, valueId, event) {
+        console.log("FieldId: " + fieldId);
+        console.log("ValueId: " + valueId);
+
+        let popup = document.createElement("div");
+        popup.classList.add("popup");
+        popup.innerText = "test";
+        document.body.appendChild(popup);
+        window.placeElement(popup, {x: 100, y: 100}, "left top", {});
+    }
+
+    function update() {
+        let url = "update?token=" + token;
+        let request = new Request(url, {
+            method: "POST",
+        });
+        fetch(request).then((resp) => {
+            if (resp.ok) {
+                showResultPopup("success-popup", "Wykonano");
+            } else {
+                showResultPopup("fail-popup", "Błąd");
+            }
+            console.log(resp);
         });
     }
 </script>

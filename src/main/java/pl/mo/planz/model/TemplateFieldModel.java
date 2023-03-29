@@ -2,7 +2,10 @@ package pl.mo.planz.model;
 
 import java.util.UUID;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -31,6 +34,11 @@ public class TemplateFieldModel {
     @Setter
     int pos;
 
+    @Getter
+    @Setter
+    @Enumerated(EnumType.STRING)
+    FieldType type = FieldType.TEXT;
+
     @ManyToOne
     @Getter
     @Setter
@@ -41,10 +49,7 @@ public class TemplateFieldModel {
     @Setter
     ProfileModel editProfile;
 
-    @Getter
-    @Setter
-    String autoMethod;
-
+    @Column(length = 1000000)
     @Getter
     @Setter
     String defaultValue = "";

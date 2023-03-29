@@ -1,10 +1,11 @@
 
+<!-- Tylko niedziela -->
 <div class="plan">
-    <div class="week-header flex-row">Plan zebrań w tygodniu od @auto=tydzien-od@</div>
-    <div class="cleaning-duty"><span>Dyżur sprzątania sali w tygodniu od @auto=tydzien-od@ - </span><span>@name=nr-grupy|list=grupy|edit=edit@</span></div>
+    <div class="week-header flex-row">Plan zebrań w tygodniu od @type=auto|default=tydzien-od@</div>
+    <div class="cleaning-duty"><span>Dyżur sprzątania sali w tygodniu od @type=auto|default=tydzien-od@ -&nbsp;</span><span>@name=nr-grupy|list=grupy|edit=edit@</span></div>
     <div class="thursday-header flex-row">@name=w-tygodniu-title|edit=admin@</div>
-    <div class="info-banner">@name=w-tygodniu-informacja@</div>
-    <div class="sunday-header flex-row">NIEDZIELA | @auto=niedziela@</div>
+    @name=w-tygodniu-informacja@
+    <div class="sunday-header flex-row">NIEDZIELA&ensp;|&ensp;@type=auto|default=niedziela@</div>
     <table class="meeting-table">
         <tr>
             <td class="duration-col"></td>
@@ -18,7 +19,7 @@
         </tr>
         <tr>
             <td class="duration-col">@name=niedz-wyklad-czas|edit=admin|default=30 min@</td>
-            <td class="subject-col">@niedz-wyklad-temat|edit=edit@</td>
+            <td class="subject-col"><div class="flex-row">@niedz-wyklad-temat|edit=edit@</div></td>
             <td class="label-col">@name=niedz-wyklad-lbl|edit=admin|default=Mówca:@</td>
             <td class="person-col">@name=niedz-mowca|list=bracia|edit=edit@</td>
         </tr>
@@ -28,7 +29,7 @@
         </tr>
         <tr>
             <td class="duration-col" rowspan="2">@name=niedz-studium-czas|edit=admin|default=60 min@</td>
-            <td class="subject-col" rowspan="2">@niedz-studium-temat|edit=edit@</td>
+            <td class="subject-col" rowspan="2"><div class="flex-row">@niedz-studium-temat|edit=edit@</div></td>
             <td class="label-col">@name=niedz-studium-prow-lbl|edit=admin|default=Prowadzący:@</td>
             <td class="person-col">@name=niedz-studium-prow|list=bracia|edit=edit@</td>
         </tr>
@@ -41,8 +42,8 @@
             <td class="field-header"></td>
         </tr>
         <tr>
-            <td class="duration-col">•</td>
-            <td class="subject-col">@name=niedz-zbiorka|list=bracia|edit=admin|default=Zbiórka do służby kaznodziejskiej@</td>
+            <td class="duration-col">@name=niedz-zbiorka-czas|edit=admin|default=•@</td>
+            <td class="subject-col"><div class="flex-row">@name=niedz-zbiorka|list=bracia|edit=admin|default=Zbiórka do służby kaznodziejskiej@</div></td>
             <td class="label-col">@name=niedz-zbiorka-temat|edit=admin|default=Prowadzący:@</td>
             <td class="person-col">@name=niedz-zbiorka-prow|list=bracia|edit=edit@</td>
         </tr>

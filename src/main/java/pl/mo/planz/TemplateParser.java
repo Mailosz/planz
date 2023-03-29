@@ -1,6 +1,7 @@
 package pl.mo.planz;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,6 +9,7 @@ import java.util.regex.Pattern;
 
 import lombok.Getter;
 import pl.mo.planz.dto.TemplateFieldDTO;
+import pl.mo.planz.model.FieldType;
 
 public class TemplateParser {
     
@@ -70,17 +72,24 @@ public class TemplateParser {
                             } else if ("list".equalsIgnoreCase(name)) {
                                 if (tf.getList() != null) throw new TemplateParsingException("duplicate list declaration");
                                 tf.setList(parts[1].trim());
-                            } else if ("auto".equalsIgnoreCase(name)) {
-                                if (tf.getAuto() != null) throw new TemplateParsingException("duplicate auto declaration");
-                                tf.setAuto(parts[1].trim());
+                            } else if ("type".equalsIgnoreCase(name)) {
+                                if (tf.getType() != null) throw new TemplateParsingException("duplicate type declaration");
+                                String type = parts[1];
+                                var opt = Arrays.stream(FieldType.values()).filter((ft) -> ft.name().equalsIgnoreCase(type)).findAny();
+
+                                if (opt.isPresent()) {
+                                    tf.setType(opt.get());
+                                } else {
+                                    throw new TemplateParsingException(String.format("wrong type declaration (type = %1$s)", type));
+                                }
                             } else if ("edit".equalsIgnoreCase(name)) {
                                 if (tf.getEdit() != null) throw new TemplateParsingException("duplicate edit declaration");
                                 tf.setEdit(parts[1].trim());
                             } else if ("default".equalsIgnoreCase(name)) {
-                                if (tf.getDefaultValue() != null) throw new TemplateParsingException("duplicate defaultValue declaration");
+                                if (tf.getDefaultValue() != null) throw new TemplateParsingException("duplicate default declaration");
                                 tf.setDefaultValue(parts[1].trim());
                             } else if ("public".equalsIgnoreCase(name)) {
-                                if (tf.getIsPublic() != null) throw new TemplateParsingException("duplicate defaultValue declaration");
+                                if (tf.getIsPublic() != null) throw new TemplateParsingException("duplicate public declaration");
                                 var v = parts[1].trim();
                                 if ("true".equalsIgnoreCase(v)) {
                                     tf.setIsPublic(true);

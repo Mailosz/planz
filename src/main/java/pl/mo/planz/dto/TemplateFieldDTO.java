@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import lombok.Getter;
 import lombok.Setter;
+import pl.mo.planz.model.FieldType;
 
 public class TemplateFieldDTO {
     @Getter
@@ -17,14 +18,14 @@ public class TemplateFieldDTO {
     @Getter
     @Setter
     String edit;
-
-    @Getter
-    @Setter
-    String auto;
     
     @Getter
     @Setter
     String list;
+
+    @Getter
+    @Setter
+    FieldType type;
 
     @Getter
     @Setter

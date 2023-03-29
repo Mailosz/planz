@@ -18,12 +18,17 @@
     };
 
     function updateFieldValue(input) {
-        let url = "fields/" + docId + "/" + input.id + "?token=" + token;
+        let url = "values/" + docId + "/" + input.id + "?token=" + token;
         let request = new Request(url, {
             method: "PUT",
             body: input.value,
         });
         fetch(request).then((resp) => {
+            if (resp.ok) {
+                showResultPopup("success-popup", "Zapisano zmianę");
+            } else {
+                showResultPopup("fail-popup", "Błąd zapisu");
+            }
             console.log(resp);
         });
     };
@@ -35,5 +40,14 @@
     function fieldChange(event) {
         cancelTimeout(event.target.getAttribute("name"));
         updateFieldValue(event.target);
+    }
+
+
+    function showResultPopup(className, content) {
+        let popup = document.createElement("div");
+        popup.classList.add(className);
+        popup.innerHTML = content;
+        popup.onanimationend = (event) => document.body.removeChild(popup);
+        document.body.appendChild(popup);
     }
 </script>
