@@ -1,13 +1,17 @@
-package pl.mo.planz;
+package pl.mo.planz.controllers;
 
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import pl.mo.planz.PageBuilder;
+import pl.mo.planz.StringUtils;
+import pl.mo.planz.TemplateParser;
+import pl.mo.planz.TemplateParsingException;
 import pl.mo.planz.dto.DocumentDTO;
 import pl.mo.planz.dto.DocumentResponseDTO;
-import pl.mo.planz.dto.FieldOptsDTO;
+import pl.mo.planz.dto.FieldDeclarationDTO;
 import pl.mo.planz.dto.TemplateFieldDTO;
 import pl.mo.planz.model.DocumentModel;
 import pl.mo.planz.model.FieldType;
@@ -460,117 +464,6 @@ public class Controller {
         List<DocumentDTO> dtos = models.stream().map((m) -> docModelToDto(m)).collect(Collectors.toList());
         
         return dtos;
-    }
-
-
-
-    @PutMapping(value="values/{docId}/{fieldId}")
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    @ResponseStatus(code = HttpStatus.OK)
-    public void updateFieldValue(@PathVariable("docId") UUID docId, @PathVariable("fieldId") UUID fieldId, @RequestParam("token") String token, @RequestBody(required = false) String value) {
-
-        var identity = identityRepository.findFromToken(token);
-        if (!identity.isPresent()) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
-        }
-        Set<String> profiles = getProfiles(identity);
-
-
-        //TODO: get list and remove duplicates
-        var opt = fieldValueRepository.findByDocAndField(docId, fieldId);
-        
-        FieldValueModel model;
-        if (opt.isPresent()) {
-            model = opt.get();
-
-            //saving history of edits
-            FieldValueHistoryModel fvh = new FieldValueHistoryModel();
-            fvh.setField(model);
-            fvh.setValue(model.getValue());
-            fvh.setEditIdentity(model.getEditIdentity());
-            fvh.setEditTime(model.getEditTime());
-
-            historyRepository.save(fvh);
-
-        } else {
-            var doc = documentRepository.findById(docId).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "No document"));
-            var field = fieldRepository.findById(fieldId).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "No field"));
-
-            model = newFieldValueModel(doc, field);
-        }
-
-        if (!profiles.contains("admin") && (!model.getDocument().isEditable() || model.getField().getEditProfile() == null || !profiles.contains(model.getField().getEditProfile().getName()))) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
-        }
-
-        if (value == null) {
-            value = "";
-        }
-
-        model.setValue(value);
-        model.setEditTime(Instant.now());
-        model.setEditIdentity(identity.get());
-
-        fieldValueRepository.save(model);
-
-        if (model.getDocument().getGeneratedContent() != null) {
-            model.getDocument().setGeneratedContent(null);
-            documentRepository.save(model.getDocument());
-        }
-    }
-
-    private FieldValueModel newFieldValueModel(DocumentModel doc, TemplateFieldModel field) {
-
-        var model = new FieldValueModel();
-        model.setType(field.getType());
-        model.setDocument(doc);
-        model.setField(field);
-
-        return model;
-    }
-
-    @PutMapping(value="fields/{docId}/{fieldId}")
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    @ResponseStatus(code = HttpStatus.OK)
-    public void updateFieldType(@PathVariable("docId") UUID docId, @PathVariable("fieldId") UUID fieldId, @RequestParam("token") String token, @RequestBody(required = true) FieldOptsDTO opts) {
-
-        var identity = identityRepository.findFromToken(token);
-        if (!identity.isPresent()) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
-        }
-        Set<String> profiles = getProfiles(identity);
-
-
-        var opt = fieldValueRepository.findByDocAndField(docId, fieldId);
-        
-        FieldValueModel model;
-        if (opt.isPresent()) {
-            model = opt.get();
-
-            //TODO: saving history of edits
-
-        } else {
-            var doc = documentRepository.findById(docId).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "No document"));
-            var field = fieldRepository.findById(fieldId).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "No field"));
-
-            model = newFieldValueModel(doc, field);
-        }
-
-        if (!profiles.contains("admin")) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
-        }
-
-        //change
-        if (opts.getType() != null) {
-            model.setType(opts.getType());
-        }
-
-        fieldValueRepository.save(model);
-
-        if (model.getDocument().getGeneratedContent() != null) {
-            model.getDocument().setGeneratedContent(null);
-            documentRepository.save(model.getDocument());
-        }
     }
 
 

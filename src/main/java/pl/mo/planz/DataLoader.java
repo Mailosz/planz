@@ -18,6 +18,7 @@ import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import pl.mo.planz.controllers.Controller;
 import pl.mo.planz.model.DocumentModel;
 import pl.mo.planz.model.IdentityModel;
 import pl.mo.planz.model.ProfileModel;

@@ -144,6 +144,21 @@ class TagBuilder {
         return this;
     }
 
+    /**
+     * Invokes arbitrary function for every child of the tag
+     * @param {Function} func 
+     */
+    forEveryChild(func) {
+
+        let child = this.#tag.firstChild;
+        while (child != null) {
+            func(child);
+            child = child.nextSibling;
+        }
+
+        return this;
+    }
+
 
     getTag() {
         return this.#tag;

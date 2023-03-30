@@ -10,25 +10,30 @@
     }
 
     .success-popup,
-    .fail-popup {
+    .fail-popup,
+    .info-popup {
         position: fixed;
         right: 20px;
         bottom: 20px;
         padding: 10px;
         box-shadow: rgba(0,0,0,0.2);
         animation: fade-out 5s;
+        z-index: 100;
     }
 
     .success-popup {
         background-color: rgb(171, 233, 171);
         border: 1px rgb(14, 221, 14) solid;
-        z-index: 100;
+    }
+
+    .info-popup {
+        background-color: rgb(188, 210, 255);
+        border: 1px rgb(121, 139, 255) solid;
     }
 
     .fail-popup {
         background-color: rgb(255, 168, 168);
         border: 1px rgb(248, 46, 46) solid;
-        z-index: 100;
     }
 
 
@@ -94,6 +99,7 @@
 
 @media print {
     .success-popup,
+    .info-popup,
     .fail-popup,
     .edit-hud,
     #top-panel {

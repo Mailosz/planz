@@ -70,43 +70,92 @@
         console.log("FieldId: " + fieldId);
         console.log("ValueId: " + valueId);
 
-        /**
-         * @type {DocBuilder} 
-         */
-        const builder = document.builder;
+        let url = "fields/" + docId + "/" + fieldId + "?token=" + token;
+        let request = new Request(url, {
+            method: "GET"
+        });
+        fetch(request).then((resp) => {
+            console.log(resp);
+            if (resp.ok) {
+                return resp.json();
+            } else {
+                throw resp.status;
+            }
+        }).then((json) => {
 
-        let content = builder.tag("div").children(
-            builder.tag("div").class("admin-popup-row").children(
-                builder.tag("span").class("admin-popup-label").innerText("Nazwa: "),
-                builder.tag("span").class("admin-popup-value").innerText("XXXXYYYYXXXX")
-            ),
-            builder.tag("div").class("admin-popup-row").children(
-                builder.tag("label").class("admin-popup-label").innerText("Wartość: ").attr("for", "admin-popup-value-input"),
-                builder.tag("input").id("admin-popup-value-input").class("admin-popup-value").attr("value", "unknown")
-            ),
-            builder.tag("div").class("admin-popup-row").children(
-                builder.tag("label").class("admin-popup-label").innerText("Typ pola: ").attr("for", "admin-popup-type-select"),
-                builder.tag("select").id("admin-popup-type-select").class("admin-popup-value").children(
-                    builder.tag("option").attr("value", "TEXT").innerText("wartość tekstowa"),
-                    builder.tag("option").attr("value", "CODE").innerText("Kod"),
-                    builder.tag("option").attr("value", "AUTO").innerText("Pole automatyczne"),
-                    builder.tag("option").attr("value", "COPY").innerText("Kopiuj"),
-                    builder.tag("option").attr("value", "COMP").innerText("Kompilowane")
+            //show admin popup
+            /**
+             * @type {DocBuilder} 
+             */
+            const builder = document.builder;
+
+            let typeSelect, valueInput;
+
+            let content = builder.tag("div").children(
+                builder.tag("div").class("admin-popup-row").children(
+                    builder.tag("span").class("admin-popup-label").innerText("Nazwa: "),
+                    builder.tag("span").class("admin-popup-value").innerText(json.name)
+                ),
+                builder.tag("div").class("admin-popup-row").children(
+                    builder.tag("span").class("admin-popup-label").innerText("Wartość domyslna: "),
+                    builder.tag("span").class("admin-popup-value").innerText(json.defaultValue)
+                ),
+                builder.tag("div").class("admin-popup-row").children(
+                    builder.tag("label").class("admin-popup-label").innerText("Wartość: ").attr("for", "admin-popup-value-input"),
+                    valueInput = builder.tag("input").id("admin-popup-value-input").class("admin-popup-value").attr("value", json.value?json.value:"")
+                ),
+                builder.tag("div").class("admin-popup-row").children(
+                    builder.tag("label").class("admin-popup-label").innerText("Typ pola: ").attr("for", "admin-popup-type-select"),
+                    typeSelect = builder.tag("select").id("admin-popup-type-select").class("admin-popup-value").children(
+                        builder.tag("option").attr("value", "TEXT").innerText("Wartość tekstowa"),
+                        builder.tag("option").attr("value", "CODE").innerText("Kod"),
+                        builder.tag("option").attr("value", "AUTO").innerText("Pole automatyczne"),
+                        builder.tag("option").attr("value", "COPY").innerText("Kopiuj"),
+                        builder.tag("option").attr("value", "COMP").innerText("Kompilowane")
+                    ).forEveryChild((el) => {if (json.type == el.value) el.selected = true; })
+                ),
+                builder.tag("div").class("admin-popup-row").attr("style", "text-align: right;").children(
+                    builder.tag("span").attr("style", "text-decoration: underline; color: darkblue; cursor: pointer;").innerText("Historia zmian")
+                ),
+                builder.tag("div").class("admin-popup-row").children(
+                    builder.tag("button").innerText("Zapisz").event("click", (event) => {
+                        let popup = Popup.getPopupOfElement(event.target);
+                        //send field update
+                        let request = new Request(url, {
+                            method: "PUT",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({type: typeSelect.getTag().options[typeSelect.getTag().selectedIndex].value})
+                        });
+                        fetch(request).then((resp) => {
+                            if (resp.ok) {
+                                showResultPopup("success-popup", "Wykonano");
+                                popup.hide();
+                            } else {
+                                showResultPopup("fail-popup", "Błąd");
+                            }
+                            console.log(resp);
+                        });
+                    })
                 )
-            ),
-            builder.tag("div").class("admin-popup-row").attr("style", "text-align: right;").children(
-                builder.tag("span").attr("style", "text-decoration: underline; color: darkblue; cursor: pointer;").innerText("Historia zmian")
-            ),
-            builder.tag("div").class("admin-popup-row").children(
-                builder.tag("button").innerText("Zapisz")
-            )
-        ).getTag();
+            ).getTag();
 
 
-        let popup = new Popup(content, {});
-        popup.show(event.target, "rightIn bottomOut");
+            let popup = new Popup(content, {});
+            popup.show(event.target, "rightIn bottomOut");
+
+        }).catch((error) => {
+            showResultPopup("fail-popup", "Błąd otwierania ( " + error + " )");
+        });
+
+
     }
 
+
+    /**
+     * updates everything
+     */
     function update() {
         let url = "update?token=" + token;
         let request = new Request(url, {
