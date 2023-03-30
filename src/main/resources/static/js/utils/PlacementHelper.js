@@ -2,14 +2,12 @@
  * @typedef {{x: number, y: number, w: number, h: number}} Rectangle
  * @typedef {{x: number, y: number}} Point
  * @typedef {{w: number, h: number}} Size
- * @typedef {string} PlacementOpts 
- * @description PlacementOpts Placement options 23
- * - asasa
+ * @typedef {string|{horizontal: string, vertical: string}} PlacementOpts 
  */
 
 export class PlacementHelper {
     /**
-     * Computes the position relatve to the element, and places it if it is a HTMLElement
+     * Computes the position relatve to the element
      * @param {HTMLElement|Size} element - An element to be placed  or its dimensions
      * @param {HTMLElement|Point} anchor - An object or rectangle to place popup relative to
      * @param {PlacementOpts} placement - "horizontal vertical" placement values
@@ -35,9 +33,9 @@ export class PlacementHelper {
      * - bottomIn - bottom edge of the anchor, inside
      * @param {HTMLElement} box - Container in which placemnt takes place
      * @param {HTMLElement|Point} options.relativeTo - Element or point to which compute the raltive placement
-     * @param {boolean|HTMLElement|Rectangle} options.keepInside - An area to which constrain computed placement (a true value constrains to the whole page)
+     * @param {Object} options.keepInside - An area to which constrain computed placement (a true value constrains to the document size)
      * 
-     * @returns {Point} - Computed position of an element
+     * @returns {Point} Computed position of an element
      */
     static computePosition(element, anchor, placement, options) {
 
@@ -45,15 +43,22 @@ export class PlacementHelper {
         let horizontalPlacement = "center";
         let verticalPlacement = "center";
 
-        let args = placement.split(" ");
-        if (args.length == 1) {
-            horizontalPlacement = args[0];
-            verticalPlacement = args[0];
-        } else if (args.length == 2) {
-            horizontalPlacement = args[0];
-            verticalPlacement = args[1];
-        } else {
-            throw "Too many placement args";
+        if (placement != null) {
+            if (Object.prototype.toString.call(placement) === "[object String]") {
+                let args = placement.split(" ");
+                if (args.length == 1) {
+                    horizontalPlacement = args[0];
+                    verticalPlacement = args[0];
+                } else if (args.length == 2) {
+                    horizontalPlacement = args[0];
+                    verticalPlacement = args[1];
+                } else {
+                    throw "Too many placement args";
+                }
+            } else {
+                horizontalPlacement = placement.horizontal;
+                verticalPlacement = placement.vertical;
+            }
         }
 
         // read anchor
@@ -196,9 +201,6 @@ export class PlacementHelper {
 
             let pos = computePosition(elWidth, elHeight);
 
-            element.style.left = pos.x + "px";
-            element.style.top = pos.y + "px";
-
             return pos;
         } else {
             let elWidth = element.w;
@@ -210,5 +212,27 @@ export class PlacementHelper {
         }
 
 
+    }
+
+    /**
+     * Computes position using PlacementHelper.computePosition and places element accordingly
+     * @param {*} element 
+     * @param {*} anchor 
+     * @param {*} placement 
+     * @param {*} options 
+     * 
+     * @returns {Point} - Computed position of an element
+     */
+    static placeElement(element, anchor, placement, options) {
+
+        let pos = PlacementHelper.computePosition(element, anchor, placement, options);
+
+        //read element 
+        if (element instanceof HTMLElement) {
+            element.style.left = pos.x + "px";
+            element.style.top = pos.y + "px";
+        } 
+
+        return pos;
     }
 }

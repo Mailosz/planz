@@ -1,9 +1,15 @@
 <script type="module">
-    import {PlacementHelper} from './js/PlacementHelper.js';
-    
+    import {PlacementHelper} from './js/utils/PlacementHelper.js';
+    import {Popup} from './js/ui/Popup.js';
+    import {DocBuilder} from './js/utils/DocBuilder.js';
+
     window.placeElement = (element, anchor, placement, options) => {
         PlacementHelper.computePosition(element, anchor, placement, options);
     }
+
+    window.Popup = Popup;
+
+    document.builder = new DocBuilder(document);
 </script>
 <script>
     function changePublic(event) {
@@ -64,11 +70,41 @@
         console.log("FieldId: " + fieldId);
         console.log("ValueId: " + valueId);
 
-        let popup = document.createElement("div");
-        popup.classList.add("popup");
-        popup.innerText = "test";
-        document.body.appendChild(popup);
-        window.placeElement(popup, {x: 100, y: 100}, "left top", {});
+        /**
+         * @type {DocBuilder} 
+         */
+        const builder = document.builder;
+
+        let content = builder.tag("div").children(
+            builder.tag("div").class("admin-popup-row").children(
+                builder.tag("span").class("admin-popup-label").innerText("Nazwa: "),
+                builder.tag("span").class("admin-popup-value").innerText("XXXXYYYYXXXX")
+            ),
+            builder.tag("div").class("admin-popup-row").children(
+                builder.tag("label").class("admin-popup-label").innerText("Wartość: ").attr("for", "admin-popup-value-input"),
+                builder.tag("input").id("admin-popup-value-input").class("admin-popup-value").attr("value", "unknown")
+            ),
+            builder.tag("div").class("admin-popup-row").children(
+                builder.tag("label").class("admin-popup-label").innerText("Typ pola: ").attr("for", "admin-popup-type-select"),
+                builder.tag("select").id("admin-popup-type-select").class("admin-popup-value").children(
+                    builder.tag("option").attr("value", "TEXT").innerText("wartość tekstowa"),
+                    builder.tag("option").attr("value", "CODE").innerText("Kod"),
+                    builder.tag("option").attr("value", "AUTO").innerText("Pole automatyczne"),
+                    builder.tag("option").attr("value", "COPY").innerText("Kopiuj"),
+                    builder.tag("option").attr("value", "COMP").innerText("Kompilowane")
+                )
+            ),
+            builder.tag("div").class("admin-popup-row").attr("style", "text-align: right;").children(
+                builder.tag("span").attr("style", "text-decoration: underline; color: darkblue; cursor: pointer;").innerText("Historia zmian")
+            ),
+            builder.tag("div").class("admin-popup-row").children(
+                builder.tag("button").innerText("Zapisz")
+            )
+        ).getTag();
+
+
+        let popup = new Popup(content, {});
+        popup.show(event.target, "rightIn bottomOut");
     }
 
     function update() {

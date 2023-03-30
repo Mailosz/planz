@@ -72,6 +72,16 @@ public class TemplateParser {
                             } else if ("list".equalsIgnoreCase(name)) {
                                 if (tf.getList() != null) throw new TemplateParsingException("duplicate list declaration");
                                 tf.setList(parts[1].trim());
+                            } else if ("auto".equalsIgnoreCase(name)) {
+                                if (tf.getType() != null) throw new TemplateParsingException("duplicate type declaration (auto)");
+                                if (tf.getDefaultValue() != null) throw new TemplateParsingException("duplicate value declaration (auto)");
+                                tf.setType(FieldType.AUTO);
+                                tf.setDefaultValue(parts[1].trim());
+                            } else if ("copy".equalsIgnoreCase(name)) {
+                                if (tf.getType() != null) throw new TemplateParsingException("duplicate type declaration (copy)");
+                                if (tf.getDefaultValue() != null) throw new TemplateParsingException("duplicate value declaration (copy)");
+                                tf.setType(FieldType.COPY);
+                                tf.setDefaultValue(parts[1].trim());
                             } else if ("type".equalsIgnoreCase(name)) {
                                 if (tf.getType() != null) throw new TemplateParsingException("duplicate type declaration");
                                 String type = parts[1];

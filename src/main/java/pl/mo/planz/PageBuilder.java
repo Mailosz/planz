@@ -73,7 +73,7 @@ public class PageBuilder {
             }
             content += "</select></label>&emsp;";
 
-            content += "<button onclick='update()'>Odświerz</button>";
+            content += "<button onclick='update()'>Odśwież</button>";
             content += "</div>";
             content += adminScript;
         }
