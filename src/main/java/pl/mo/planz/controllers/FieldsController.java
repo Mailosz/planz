@@ -12,6 +12,7 @@ import pl.mo.planz.TemplateParsingException;
 import pl.mo.planz.dto.DocumentDTO;
 import pl.mo.planz.dto.DocumentResponseDTO;
 import pl.mo.planz.dto.FieldDeclarationDTO;
+import pl.mo.planz.dto.HistoryItemDTO;
 import pl.mo.planz.dto.TemplateFieldDTO;
 import pl.mo.planz.model.DocumentModel;
 import pl.mo.planz.model.FieldType;
@@ -33,7 +34,9 @@ import pl.mo.planz.repositories.ValueListRepository;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Period;
+import java.time.ZoneId;
 import java.time.chrono.ChronoPeriod;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -91,7 +94,7 @@ public class FieldsController {
 
     @Autowired
     FieldValueHistoryRepository historyRepository;
-
+    
     public void adminOrThrow(String token) {
         var identity = identityRepository.findFromToken(token);
         Set<String> profiles = getProfiles(identity);
@@ -231,6 +234,28 @@ public class FieldsController {
             model.getDocument().setGeneratedContent(null);
             documentRepository.save(model.getDocument());
         }
+    }
+
+
+    @GetMapping(value="history/{valueId}")
+    public List<HistoryItemDTO> getHistory(@PathVariable("valueId") UUID valueId, @RequestParam("token") String token) {
+
+        adminOrThrow(token);
+
+        List<FieldValueHistoryModel> items = historyRepository.getHistoryForField(valueId);
+
+        DateTimeFormatter timeFormattter = DateTimeFormatter.ofPattern("mm:HH dd.MM.YYYY");
+
+        List<HistoryItemDTO> dtos = items.stream().map((item) -> {
+            HistoryItemDTO dto = new HistoryItemDTO();
+            dto.setValue(item.getValue());
+            dto.setEditor(item.getEditIdentity().getName());
+            dto.setTime(item.getEditTime().atZone(ZoneId.systemDefault()).format(timeFormattter));
+
+            return dto;
+        }).collect(Collectors.toList());
+
+        return dtos;
     }
 
 

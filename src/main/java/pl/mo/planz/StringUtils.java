@@ -3,7 +3,7 @@ package pl.mo.planz;
 public class StringUtils {
     public static String escapeQuotes(String s) {
         if (s == null) return null;
-        return s.replace("\"", "\\\"");
+        return s.replace("\"", "&quot;");
     }
 
     public static String escapeHTML(String s) {

@@ -92,6 +92,9 @@
             let typeSelect, valueInput;
 
             let content = builder.tag("div").children(
+                builder.tag("div").class("admin-popup-row").attr("style", "text-align: right;").children(
+                    builder.tag("button").innerText("X").attr("tabindex", "10").event("click", (event) => { Popup.getPopupOfElement(event.target).hide(); })
+                ),
                 builder.tag("div").class("admin-popup-row").children(
                     builder.tag("span").class("admin-popup-label").innerText("Nazwa: "),
                     builder.tag("span").class("admin-popup-value").innerText(json.name)
@@ -115,7 +118,42 @@
                     ).forEveryChild((el) => {if (json.type == el.value) el.selected = true; })
                 ),
                 builder.tag("div").class("admin-popup-row").attr("style", "text-align: right;").children(
-                    builder.tag("span").attr("style", "text-decoration: underline; color: darkblue; cursor: pointer;").innerText("Historia zmian")
+                    builder.tag("span").attr("style", "text-decoration: underline; color: darkblue; cursor: pointer;").innerText("Historia zmian").event("click", (event) => {
+                        let historyUrl = "history/" + valueId + "?token=" + token;
+                        let request = new Request(historyUrl, {
+                            method: "GET"
+                        });
+                        fetch(request).then((resp) => {
+                            console.log(resp);
+                            if (resp.ok) {
+                                return resp.json();
+                            } else {
+                                showResultPopup("fail-popup", "Błąd");
+                            }
+                        }).then((json) => {
+
+                            let table = builder.tag("table");
+                            table.children(
+                                    builder.tag("tr").children(
+                                        builder.tag("th").innerText("Wartość"),
+                                        builder.tag("th").innerText("Edytujący"),
+                                        builder.tag("th").innerText("Czas"),
+                                    )
+                                )
+                            for (let row of json) {
+                                table.children(
+                                    builder.tag("tr").children(
+                                        builder.tag("td").innerText(row.value),
+                                        builder.tag("td").innerText(row.editor),
+                                        builder.tag("td").innerText(row.time),
+                                    )
+                                )
+                            }
+
+                            let popup = new Popup(table.getTag(), {});
+                            popup.show(document.body, "center center");
+                        });
+                    })
                 ),
                 builder.tag("div").class("admin-popup-row").children(
                     builder.tag("button").innerText("Zapisz").event("click", (event) => {
@@ -142,7 +180,7 @@
             ).getTag();
 
 
-            let popup = new Popup(content, {});
+            let popup = new Popup(content, {pointerDismissable: false});
             popup.show(event.target, "rightIn bottomOut");
 
         }).catch((error) => {
