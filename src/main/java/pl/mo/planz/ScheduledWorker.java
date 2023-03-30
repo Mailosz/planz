@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PreDestroy;
+import pl.mo.planz.repositories.DocumentRepository;
 
 @Component
 public class ScheduledWorker {

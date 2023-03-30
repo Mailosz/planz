@@ -1,4 +1,4 @@
-package pl.mo.planz;
+package pl.mo.planz.repositories;
 
 import java.time.LocalDate;
 import java.util.Optional;

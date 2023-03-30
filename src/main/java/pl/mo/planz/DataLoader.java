@@ -25,6 +25,12 @@ import pl.mo.planz.model.TemplateModel;
 import pl.mo.planz.model.TokenModel;
 import pl.mo.planz.model.ValueListItemModel;
 import pl.mo.planz.model.ValueListModel;
+import pl.mo.planz.repositories.DocumentRepository;
+import pl.mo.planz.repositories.IdentityRepository;
+import pl.mo.planz.repositories.ProfileRepository;
+import pl.mo.planz.repositories.TemplateRepository;
+import pl.mo.planz.repositories.TokenRepository;
+import pl.mo.planz.repositories.ValueListRepository;
 
 @Component
 public class DataLoader {

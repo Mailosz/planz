@@ -17,6 +17,14 @@ import pl.mo.planz.model.IdentityModel;
 import pl.mo.planz.model.TemplateFieldModel;
 import pl.mo.planz.model.TemplateModel;
 import pl.mo.planz.model.ValueListModel;
+import pl.mo.planz.repositories.DocumentRepository;
+import pl.mo.planz.repositories.FieldRepository;
+import pl.mo.planz.repositories.FieldValueHistoryRepository;
+import pl.mo.planz.repositories.FieldValueRepository;
+import pl.mo.planz.repositories.IdentityRepository;
+import pl.mo.planz.repositories.ProfileRepository;
+import pl.mo.planz.repositories.TemplateRepository;
+import pl.mo.planz.repositories.ValueListRepository;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -575,7 +583,7 @@ public class Controller {
     }
 
     /**
-     * Odświerzanie wszystkiego
+     * Odświeżanie wszystkiego
      * @param token
      */
     @PostMapping(value="update")

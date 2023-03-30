@@ -1,4 +1,4 @@
-package pl.mo.planz;
+package pl.mo.planz.repositories;
 
 import java.util.UUID;
 
