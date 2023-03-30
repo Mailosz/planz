@@ -95,8 +95,8 @@ public class TemplateParser {
                             } else if ("edit".equalsIgnoreCase(name)) {
                                 if (tf.getEdit() != null) throw new TemplateParsingException("duplicate edit declaration");
                                 tf.setEdit(parts[1].trim());
-                            } else if ("default".equalsIgnoreCase(name)) {
-                                if (tf.getDefaultValue() != null) throw new TemplateParsingException("duplicate default declaration");
+                            } else if ("value".equalsIgnoreCase(name)) {
+                                if (tf.getDefaultValue() != null) throw new TemplateParsingException("duplicate value declaration");
                                 tf.setDefaultValue(parts[1].trim());
                             } else if ("public".equalsIgnoreCase(name)) {
                                 if (tf.getIsPublic() != null) throw new TemplateParsingException("duplicate public declaration");
