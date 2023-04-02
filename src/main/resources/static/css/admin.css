@@ -93,7 +93,8 @@
 
 }
 
-.admin-popup-row {
+.popup::slotted(content) .admin-popup-row {
+    background: red;
     padding: 8px 0px;
 }
 

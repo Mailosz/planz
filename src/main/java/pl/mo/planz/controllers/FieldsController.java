@@ -244,7 +244,7 @@ public class FieldsController {
 
         List<FieldValueHistoryModel> items = historyRepository.getHistoryForField(valueId);
 
-        DateTimeFormatter timeFormattter = DateTimeFormatter.ofPattern("mm:HH dd.MM.YYYY");
+        DateTimeFormatter timeFormattter = DateTimeFormatter.ofPattern("YYYY.MM.dd HH:mm:ss");
 
         List<HistoryItemDTO> dtos = items.stream().map((item) -> {
             HistoryItemDTO dto = new HistoryItemDTO();

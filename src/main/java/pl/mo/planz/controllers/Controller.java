@@ -221,12 +221,37 @@ public class Controller {
     }
 
     public void adminOrThrow(String token) {
-        var identity = identityRepository.findFromToken(token);
-        Set<String> profiles = getProfiles(identity);
+        requireProfileOrThrow(token, "admin");
+    }
 
-        if (!profiles.contains("admin")) {
+    private Set<String> getProfilesOrThrow(String token) {
+        var identity = identityRepository.findFromToken(token);
+        if (!identity.isPresent()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
+
+        return identity.get().getProfiles().stream().map((p) -> p.getName()).collect(Collectors.toSet());
+
+    }
+
+
+    private Set<String> getProfiles(Optional<IdentityModel> identity) {
+        if (identity.isPresent()) {
+            return identity.get().getProfiles().stream().map((p) -> p.getName()).collect(Collectors.toSet());
+        } else {
+            return new HashSet<String>();
+        }
+    }
+
+    public Set<String> requireProfileOrThrow(String token, String profile) {
+
+        Set<String> profiles = getProfilesOrThrow(token);
+
+        if (!profiles.contains(profile)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+
+        return profiles;
     }
 
     @PostMapping(value="documents")
@@ -318,7 +343,7 @@ public class Controller {
     @GetMapping(value="/")
     public String openCurrentDocument(@RequestParam(name = "token", required = false) String token) {
 
-        //if (token == null) throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        // if (token == null) throw new ResponseStatusException(HttpStatus.FORBIDDEN);
 
         Optional<DocumentModel> opt = getCurrentDocument(documentRepository);
         
@@ -404,6 +429,12 @@ public class Controller {
             isEdit = true;
         }
 
+        if (!isAdmin && !isEdit) {
+            if (!profiles.contains("view")) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+            }
+        }
+
         String next = null;
         String prev = null;
         if (isAdmin || isEdit) {
@@ -466,14 +497,6 @@ public class Controller {
         return dtos;
     }
 
-
-    private Set<String> getProfiles(Optional<IdentityModel> identity) {
-        if (identity.isPresent()) {
-            return identity.get().getProfiles().stream().map((p) -> p.getName()).collect(Collectors.toSet());
-        } else {
-            return new HashSet<String>();
-        }
-    }
 
     /**
      * Odświeżanie wszystkiego

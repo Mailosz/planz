@@ -36,6 +36,13 @@ body {
             max-height: 310mm;
         }
     }
+
+    @media not (min-width: 800px) { 
+
+        .helpers-table .inline-label {
+            width: 100%;
+        }
+    }
 }
 
 .week-header {
@@ -76,6 +83,10 @@ td {
 
 .meeting-table td:nth-child(3) {
     width: 16%;
+}
+
+.show-mode .meeting-table td:nth-child(3) {
+    overflow: hidden;
 }
 
 .meeting-table td:nth-child(4) {
@@ -167,6 +178,7 @@ td {
 
 .flex-row {
     display: flex;
+    flex-wrap: wrap;
 }
 
 .inline-label {
