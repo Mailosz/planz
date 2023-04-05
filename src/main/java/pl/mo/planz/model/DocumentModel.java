@@ -55,7 +55,7 @@ public class DocumentModel {
 
     @Getter
     @Setter
-    boolean isEditable = true;
+    boolean isEditable = false;
 
     @Column(length = 1000000)
     @Getter

@@ -14,7 +14,7 @@
 
     function resetTimeout(name, func) {
         cancelTimeout(name);
-        timeouts[name] = setTimeout(() =>{func(); timeouts[name] = null;}, 1000);
+        timeouts[name] = setTimeout(() =>{func(); timeouts[name] = null;}, 1500);
     };
 
     function updateFieldValue(input) {
@@ -38,6 +38,7 @@
     }
 
     function fieldChange(event) {
+        checkInput(event.target); 
         cancelTimeout(event.target.getAttribute("name"));
         updateFieldValue(event.target);
     }
@@ -50,4 +51,40 @@
         popup.onanimationend = (event) => document.body.removeChild(popup);
         document.body.appendChild(popup);
     }
+
+    function checkInput(input) {
+        console.log("here")
+        
+        let datalist = input.list;
+        if (datalist == null) {
+            input.classList.remove("unknown");
+            return;
+        }
+
+        let value = input.value.toUpperCase();
+        if (value == "") {
+            input.classList.remove("unknown");
+            return;
+        }
+
+        for (let option of datalist.options) {
+            if (value == option.value.toUpperCase()) {
+                
+                input.classList.remove("unknown");
+
+                return;
+            }
+        }
+        input.classList.add("unknown");
+    }
+
+    let elems = document.querySelectorAll(".edit-hud input[type=text].user-editable-field");
+
+        for (let elem of elems) {
+            checkInput(elem);
+        }
+
+    document.body.addEventListener("load", (event) => {
+        
+    });
 </script>

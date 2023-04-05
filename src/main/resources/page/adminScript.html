@@ -151,8 +151,13 @@
                             }
 
                             let popup = new Popup(table.getTag(), {});
-                            popup.show(document.body, "center center");
+                            popup.show(null, "center center");
                         });
+                    }).invoke((el) => {
+                        if (valueId == null) {
+                            console.log("elo");
+                            el.style.display = "none";
+                        }
                     })
                 ),
                 builder.tag("div").class("admin-popup-row").children(
@@ -164,7 +169,10 @@
                             headers: {
                                 "Content-Type": "application/json",
                             },
-                            body: JSON.stringify({type: typeSelect.getTag().options[typeSelect.getTag().selectedIndex].value})
+                            body: JSON.stringify({
+                                type: typeSelect.getTag().options[typeSelect.getTag().selectedIndex].value,
+                                value: valueInput.getTag().value
+                            })
                         });
                         fetch(request).then((resp) => {
                             if (resp.ok) {

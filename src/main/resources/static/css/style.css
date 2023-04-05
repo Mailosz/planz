@@ -1,5 +1,6 @@
 body {
     font-family: sans-serif;
+    font-size: 12pt;
 }
 
 * {
@@ -16,6 +17,13 @@ body {
 }
 
 @media not print {
+
+    .show-mode .week-header {
+        background-color: white;
+        position: sticky;
+        top: 0px;
+    }
+
     @media (min-width: 800px) {
 
         body {
@@ -46,7 +54,7 @@ body {
 }
 
 .week-header {
-    font-size: xx-large;
+    font-size: 20pt;
     border-bottom: 2px solid black;
 }
 
@@ -63,7 +71,7 @@ td {
 
 
 .cleaning-duty {
-    font-size: x-large;
+    font-size: 16pt;
     background: #ccc;
     margin: 20px auto;
     width: 95%;
@@ -85,7 +93,7 @@ td {
     width: 16%;
 }
 
-.show-mode .meeting-table td:nth-child(3) {
+.show-mode .meeting-table .label-col {
     overflow: hidden;
 }
 
@@ -93,15 +101,18 @@ td {
     width: 25%;
 }
 
-
-.thursday-header {
-    margin-top: 36px;
-    font-size: xx-large;
+.day-header,
+.thursday-header,
+.sunday-header {
+    margin-top: 24px;
+    font-size: 20pt;
+    font-weight: 600;
 }
+
 
 .sunday-header {
     margin-top: 36px;
-    font-size: xx-large;
+    font-size: 20pt;
 }
 
 
@@ -145,7 +156,7 @@ td {
 .label-col {
     padding-top: 6px;
     text-align: right;
-    font-size: small;
+    font-size: 10pt;
     font-weight: 600;
 }
 

@@ -74,15 +74,16 @@ public class DataLoader {
         admProfile.setName("admin");
         profileRepository.save(admProfile);
 
-        ProfileModel tstProfile = new ProfileModel();
+        ProfileModel viewProfile = new ProfileModel();
         //tstProfile.setId(UUID.fromString("90d48d10-8b00-410b-938e-25c5d3f9c6a7"));
-        tstProfile.setName("edit3");
-        profileRepository.save(tstProfile);
+        viewProfile.setName("view");
+        profileRepository.save(viewProfile);
 
 
         
         IdentityModel publicIdentity = new IdentityModel();
         //publicIdentity.setId(UUID.fromString("bc463ce2-5528-4b15-b93f-2d6f932bf3c4"));
+        publicIdentity.getProfiles().add(viewProfile);
         identityRepository.save(publicIdentity);
 
         TokenModel showToken = new TokenModel();

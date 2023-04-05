@@ -105,7 +105,7 @@ public class PageBuilder {
         return content;
     }
 
-    public static String buildDocumentForEdit(DocumentModel docModel, Map<UUID, FieldValueModel> valueMap, Set<String> profiles, String token) {
+    public static String buildDocumentForEdit(DocumentModel docModel, Map<String, FieldValueModel> valueMap, Set<String> profiles, String token) {
 
         String helpInputs = "<input type=\"hidden\" id=\"token-input\" value=\"" + token + "\">"
             + "<input type=\"hidden\" id=\"document-id-input\" value=\"" + docModel.getId() + "\">";
@@ -135,9 +135,9 @@ public class PageBuilder {
 
                 templateBuffer.insert(field.getPos(), staticValue);
             } else { // edit
-                var valueModel = valueMap.get(field.getId());
+                var valueModel = valueMap.get(field.getName());
 
-                String input = getEditValue(field, docModel, valueModel, listname);
+                String input = getEditValue(field, docModel, valueModel, valueMap, listname);
                 
                 if (isAdmin) {
                     input = "<div class=\"edit-hud admin\" >" + input + "<div class='more' onclick=\"showAdminPopup('" + field.getId().toString() + "', '" + (valueModel!= null?valueModel.getId():"") + "', event)\">...</div></div>";
@@ -165,7 +165,7 @@ public class PageBuilder {
         return helpInputs + sb.toString() + templateBuffer.toString();
     }
 
-    private static String getEditValue(TemplateFieldModel field, DocumentModel docModel, FieldValueModel valueModel, String listname) {
+    private static String getEditValue(TemplateFieldModel field, DocumentModel docModel, FieldValueModel valueModel, Map<String, FieldValueModel> valueMap, String listname) {
 
         String value = null;
         FieldType type = null;
@@ -189,14 +189,16 @@ public class PageBuilder {
         switch (type) {
             case AUTO:
                 return getFieldAutoValue(docModel, value);
+            case COPY:
+                return getFieldCopyValue(value, valueMap);
             default:
                 return String.format("<input type=\"text\" id=\"%1$s\" name=\"%2$s\" %3$s class=\"user-editable-field\" value=\"%4$s\" maxlength=\"160\" oninput=\"fieldInput(event)\" onchange=\"fieldChange(event)\">", field.getId(), field.getName(), listname, StringUtils.escapeHTML(StringUtils.escapeQuotes(value)));
         }
     }
 
-    private static String getStaticValue(TemplateFieldModel field, DocumentModel docModel, Map<UUID, FieldValueModel> valueMap) {
+    private static String getStaticValue(TemplateFieldModel field, DocumentModel docModel, Map<String, FieldValueModel> valueMap) {
 
-        var valueModel = valueMap.get(field.getId());
+        var valueModel = valueMap.get(field.getName());
         String value = null;
         FieldType type = null;
         if (valueModel != null) {
@@ -219,6 +221,8 @@ public class PageBuilder {
         switch (type) {
             case AUTO:
                 return getFieldAutoValue(docModel, value);
+            case COPY:
+                return getFieldCopyValue(value, valueMap);
             case TEXT:
                 return StringUtils.escapeHTML(value);
             default:
@@ -226,7 +230,7 @@ public class PageBuilder {
         }
     }
 
-    public static String buildTemplateForView(DocumentModel docModel, Map<UUID, FieldValueModel> valueMap) {
+    public static String buildTemplateForView(DocumentModel docModel, Map<String, FieldValueModel> valueMap) {
 
         List<TemplateFieldModel> fields = docModel.getTemplate().getFields();
         fields.sort((f1, f2) -> Integer.compare(f2.getPos(), f1.getPos()));
@@ -272,5 +276,14 @@ public class PageBuilder {
             case "niedziela" -> doc.getWeek().plus(6, ChronoUnit.DAYS).format(dateFormattter);
             default -> "";
         };
+    }
+
+    private static String getFieldCopyValue(String value, Map<String, FieldValueModel> valueMap) {
+        var valueModel = valueMap.get(value);
+        if (valueModel == null) {
+            return "";
+        } else {
+            return valueModel.getValue();
+        }
     }
 }

@@ -457,7 +457,7 @@ public class Controller {
 
         String content = "";
         if (isAdmin || (isEdit && doc.isEditable())) {
-            Map<UUID, FieldValueModel> valueMap = fieldValueRepository.getAllForDocumentId(doc.getId()).stream().filter((v) -> v.getValue() != null).collect(Collectors.toMap((fv) -> fv.getField().getId(), (fv) -> fv, (val1, val2) -> {return val2;}));
+            Map<String, FieldValueModel> valueMap = fieldValueRepository.getAllForDocumentId(doc.getId()).stream().filter((v) -> v.getValue() != null).collect(Collectors.toMap((fv) -> fv.getField().getName(), (fv) -> fv, (val1, val2) -> {return val2;}));
         
             content = PageBuilder.buildDocumentForEdit(doc, valueMap, profiles, token);
         } else {
@@ -465,7 +465,7 @@ public class Controller {
 
                 if (doc.getGeneratedContent() == null) {
 
-                    Map<UUID, FieldValueModel> valueMap = fieldValueRepository.getAllForDocumentId(doc.getId()).stream().filter((v) -> v.getValue() != null).collect(Collectors.toMap((fv) -> fv.getField().getId(), (fv) -> fv, (val1, val2) -> {return val2;}));
+                    Map<String, FieldValueModel> valueMap = fieldValueRepository.getAllForDocumentId(doc.getId()).stream().filter((v) -> v.getValue() != null).collect(Collectors.toMap((fv) -> fv.getField().getName(), (fv) -> fv, (val1, val2) -> {return val2;}));
                     content = PageBuilder.buildTemplateForView(doc, valueMap);
 
                     doc.setGeneratedContent(content);
@@ -559,8 +559,9 @@ public class Controller {
     }
 
     @GetMapping(value="test") 
-    public void test(@RequestParam("token") String token) {
-        System.out.println("TOKEN: " + token);
+    public void test() {
+        System.out.println("Here");
+        throw new ResponseStatusException(HttpStatus.ALREADY_REPORTED);
     }
 
 

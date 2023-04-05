@@ -70,6 +70,11 @@
 
     }
 
+    .edit-hud input.unknown {
+        outline: 8px solid rgba(255,255,0,0.7);
+        border-radius: 1px;
+    }
+
     .edit-hud:hover .more {
         display: block;
     }
@@ -93,9 +98,8 @@
 
 }
 
-.popup::slotted(content) .admin-popup-row {
-    background: red;
-    padding: 8px 0px;
+.admin-popup-row {
+    padding: 4px 10px;
 }
 
 @media print {
