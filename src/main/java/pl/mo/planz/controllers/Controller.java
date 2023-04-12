@@ -5,6 +5,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import pl.mo.planz.DocumentGenerator;
 import pl.mo.planz.PageBuilder;
 import pl.mo.planz.StringUtils;
 import pl.mo.planz.TemplateParser;
@@ -373,7 +374,7 @@ public class Controller {
         return docRepo.findById(currentDocumentId);
     }
 
-    private static UUID findCurrentDocument(DocumentRepository docRepo) {
+    public static UUID findCurrentDocument(DocumentRepository docRepo) {
         List<DocumentModel> docs = docRepo.findAll();
         
         var now = LocalDate.now();
@@ -508,53 +509,7 @@ public class Controller {
     public void update(@RequestParam("token") String token) {
         adminOrThrow(token);
 
-        int dayOfWeek = LocalDate.now().getDayOfWeek().getValue() - 1;
-        LocalDate weekStart = LocalDate.now().minusDays(dayOfWeek);
-        List<LocalDate> weeks = weekStart.datesUntil(weekStart.plusMonths(2), Period.ofWeeks(1)).collect(Collectors.toList());
-        LocalDate minimumDate = LocalDate.now().minusMonths(2);
-
-        List<DocumentModel> docs = documentRepository.findAll();
-
-        for (var doc : docs) {
-            if (doc.getWeek().isBefore(minimumDate)) {
-                if (doc.getNext() != null) doc.getNext().setPrev(null);
-                if (doc.getPrev() != null) doc.getPrev().setNext(null);
-                documentRepository.delete(doc);
-            }
-        }
-
-        DocumentModel previous = null;
-        for (var week : weeks) {
-
-            var docOpt = docs.stream().filter((d) -> d.getWeek().isEqual(week)).findFirst();
-            DocumentModel doc;
-            if (docOpt.isPresent()) {
-
-                doc = docOpt.get();
-
-                if (previous != null) {
-                    doc.setPrev(previous);
-                    previous.setNext(doc);
-                }
-
-            } else { // create new document
-                doc = new DocumentModel();
-
-                doc.setWeek(week);
-                doc.setTemplate(templateRepository.findAll().get(0));
-
-                doc.setPrev(previous);
-                if (previous != null) {
-                    previous.setNext(doc);
-                }
-                
-                documentRepository.save(doc);
-                previous = doc;
-            }
-
-            previous = doc;
-        };
-
+        DocumentGenerator.generateDocumentsAndRemoveOld(documentRepository, templateRepository, true);
 
     }
 

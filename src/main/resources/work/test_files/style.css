@@ -1,0 +1,382 @@
+body {
+    font-family: sans-serif;
+    font-size: 12pt;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+#doc-container {
+    margin: auto;
+    
+}
+
+.page {
+    box-sizing: border-box;
+}
+
+@media not print {
+
+    .show-mode .week-header {
+        background-color: white;
+        position: sticky;
+        top: 0px;
+    }
+
+    @media (min-width: 800px) {
+
+        body {
+            background-color: #eee;
+        }
+
+
+        .page {
+            padding: 10mm 15mm;
+            max-width: 210mm;
+            min-height: 310mm;
+            background-color: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        .page.show-mode {
+            height: 310mm;
+            max-height: 310mm;
+        }
+    }
+
+    @media not (min-width: 800px) { 
+
+        .helpers-table .inline-label {
+            width: 100%;
+        }
+    }
+}
+
+.week-header {
+    font-size: 20pt;
+    border-bottom: 2px solid black;
+}
+
+table {
+    border-collapse: collapse;
+    table-layout: fixed;
+    width: 100%;
+}
+
+td {
+    padding: 4px 6px;
+    vertical-align: top;
+}
+
+
+.cleaning-duty {
+    font-size: 16pt;
+    background: #ccc;
+    margin: 20px auto;
+    width: 95%;
+    padding: 4px;
+    text-align: center;
+}
+
+.edit-mode .cleaning-duty {
+    display: flex;
+}
+
+.meeting-table td:nth-child(1) {
+    width: 8%;
+}
+
+.meeting-table td:nth-child(2) {}
+
+.meeting-table td:nth-child(3) {
+    width: 16%;
+}
+
+.show-mode .meeting-table td:nth-child(3) {
+    overflow: hidden;
+}
+
+.meeting-table td:nth-child(4) {
+    width: 25%;
+}
+
+.day-header,
+.thursday-header,
+.sunday-header {
+    margin-top: 24px;
+    font-size: 20pt;
+    font-weight: 600;
+}
+
+
+.sunday-header {
+    margin-top: 36px;
+    font-size: 20pt;
+}
+
+
+
+
+.lecture-header {
+    font-weight: 600;
+    background: #457530;
+    color: white;
+    text-transform: uppercase;
+}
+
+.study-header {
+    font-weight: 600;
+    background: #66a5db;
+    color: white;
+    text-transform: uppercase;
+}
+
+
+
+
+.helpers-table {
+    border: 1px solid black;
+    width: 95%;
+    margin: auto;
+}
+
+.helpers-table td {
+    border-left: 1px solid black;
+}
+
+.helpers-table tr:first-child {
+    background-color: #ddd;
+    font-weight: 600;
+}
+
+.helpers-table td:nth-child(1) {
+    width: 30%;
+}
+
+.helpers-table td:nth-child(2) {
+    width: 35%
+}
+
+.helpers-table td:nth-child(3) {
+    width: 35%;
+}
+
+.flex-row {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.inline-label {
+    font-size: small;
+    font-weight: 600;
+}
+
+@media print {
+    input {
+        border: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .top-panel,
+    #prev-button,
+    #next-button {
+        display: none;
+    }
+}
+
+#prev-button, #next-button {
+    position: fixed;
+    top: 50%;
+    font-size: xx-large;
+    
+    transform: translateY(-50%);
+    height: max(20vh, 64px);
+    width: max(15vw, 48px);
+    background-color: rgba(128,128,128,0.2);
+    vertical-align: middle;
+    text-align: center;
+    z-index: 100;
+}
+
+#prev-button {
+    left: 0px;
+}
+
+#next-button {
+    right: 0px;
+}
+#prev-button:hover,#next-button:hover {
+    background-color: rgba(128,128,128,0.5);
+}
+#prev-button:active,#next-button:active {
+    background-color: rgba(128,128,128,0.7);
+}
+
+.central {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.info-banner {
+    margin: 20px auto;
+    box-sizing: border-box;
+    width: 95%;
+    padding: 40px 20px;
+    text-align: center;
+    font-size: larger;
+    background-color: #ddd;
+}
+
+.meeting-div {
+    margin: 10px 0px;
+}
+
+
+
+
+/*
+MEETING GRID
+*/
+
+.meeting-grid {
+    display: grid;
+    grid-template-columns: [time] minmax(20px,max-content) [subject] auto [label] max-content [person] max-content;
+    align-items: end;
+}
+
+
+
+.duration-col,
+.label-col {
+    text-align: right;
+    font-size: 10pt;
+    font-weight: 600;
+}
+
+.meeting-grid>.duration-col {
+    grid-column: 1;
+    padding: 4px 0px 5px 0px;
+}
+.meeting-grid>.subject-col {
+    grid-column: 2;
+    padding: 4px 0px 4px 10px;
+}
+.meeting-grid>.label-col {
+    grid-column: 3;
+    padding: 4px 0px 5px 10px;
+}
+.meeting-grid>.person-col {
+    grid-column: 4;
+    padding: 4px 0px 4px 10px;
+}
+
+.treasures-header-filler,
+.ministry-header-filler,
+.lifestyle-header-filler,
+.lecture-header-filler,
+.study-header-filler {
+    padding: 4px;
+    box-sizing: content-box;
+    height: 1em;
+    grid-column: 1;
+}
+
+.treasures-header-filler {
+    background: #888;
+}
+.ministry-header-filler {
+    background: #c99700;
+}
+.lifestyle-header-filler {
+    background: #940000;
+}
+.lecture-header-filler {
+    background: #888;
+}
+.study-header-filler {
+    background: #888;
+}
+
+.treasures-header {
+    box-sizing: content-box;
+    padding: 4px 0px 4px 10px;
+    height: 1em;
+    font-weight: 600;
+    background: #888;
+    color: white;
+    text-transform: uppercase;
+}
+
+.ministry-header {
+    box-sizing: content-box;
+    padding: 4px 0px 4px 10px;
+    height: 1em;
+    font-weight: 600;
+    background: #c99700;
+    color: white;
+    text-transform: uppercase;
+}
+
+.lifestyle-header {
+    box-sizing: content-box;
+    padding: 4px 0px 4px 10px;
+    height: 1em;
+    font-weight: 600;
+    background: #940000;
+    color: white;
+    text-transform: uppercase;
+}
+
+@media not print {
+
+
+    @media not (min-width: 800px) { 
+
+        .meeting-grid {
+            grid-template-columns: auto max-content;
+            grid-auto-flow: dense;
+        }
+
+        .meeting-grid>.duration-col {
+            text-align: left;
+            grid-column: 1;
+            padding-left: 10px;
+            padding-bottom: 0px;
+        }
+        .meeting-grid>.subject-col {
+            grid-column: 1;
+        }
+        .meeting-grid>.label-col {
+            text-align: left;
+            padding-bottom: 0px;
+            grid-column: 2;
+        }
+        .meeting-grid>.person-col {
+            grid-column: 2;
+        }
+
+        .helpers-table .inline-label {
+            width: 100%;
+        }
+
+        .treasures-header-filler,
+        .ministry-header-filler,
+        .lifestyle-header-filler,
+        .lecture-header-filler,
+        .study-header-filler {
+            display: none;
+        }
+
+        .treasures-header,
+        .ministry-header,
+        .lifestyle-header,
+        .lecture-header,
+        .study-header {
+            grid-column: 1 / 3;
+        }
+    }
+}

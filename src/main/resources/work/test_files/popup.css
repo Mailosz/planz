@@ -1,0 +1,41 @@
+@keyframes open-popup-menu {
+    0% {opacity: 0%;}
+    100% {opacity: 100%;}
+}
+
+@keyframes hide-popup {
+    0% {opacity: 80%;}
+    100% {opacity: 0%;}
+}
+
+
+.popup {
+    position: absolute;
+    background: white;
+    padding: 10px;
+    border: 1px #888 solid;
+    border-radius: 4px;
+    box-shadow: 0px 0px 10px rgba(127,127,127,0.3);
+
+    animation: open-popup-menu ease-out 200ms 1 none;
+}
+
+.popup-backdrop {
+    background: transparent;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    background-color: rgba(127,127,127,0.1);
+}
+    .popup-backdrop.hiding {
+        animation: hide-popup 100ms;
+    }
+
+
+.popup:focus {
+    box-shadow: 0px 0px 15px rgba(127,127,127,0.5);
+    border: 1px #333 solid;
+}
