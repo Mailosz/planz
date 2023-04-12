@@ -380,14 +380,20 @@ public class Controller {
         var now = LocalDate.now();
 
         DocumentModel current = null;
+        long diff = 0;
         for (var doc : docs) {
-            if (now.isBefore(doc.getWeek())) {
-                if (current == null || current.getWeek().isAfter(doc.getWeek())) {
-                    current = doc;
-                }
+            if (now.isAfter(doc.getWeek()) && now.isBefore(doc.getWeek().plusDays(7))) {
+                //perfect match
+                current = doc;
+                break;
+            } else if (current == null) {
+                current = doc;
+                diff = ChronoUnit.DAYS.between(now, doc.getWeek());
             } else {
-                if (current == null || current.getWeek().isBefore(doc.getWeek())) {
+                long d = ChronoUnit.DAYS.between(now, doc.getWeek());
+                if (d < diff) {
                     current = doc;
+                    diff = d;
                 }
             }
         }
@@ -509,7 +515,8 @@ public class Controller {
     public void update(@RequestParam("token") String token) {
         adminOrThrow(token);
 
-        DocumentGenerator.generateDocumentsAndRemoveOld(documentRepository, templateRepository, true);
+        DocumentGenerator.removeOldDocuments(documentRepository, fieldValueRepository, historyRepository);
+        DocumentGenerator.generateDocuments(documentRepository, templateRepository);
 
     }
 

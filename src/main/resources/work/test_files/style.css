@@ -245,7 +245,7 @@ MEETING GRID
 .meeting-grid {
     display: grid;
     grid-template-columns: [time] minmax(20px,max-content) [subject] auto [label] max-content [person] max-content;
-    align-items: end;
+    align-items: baseline;
 }
 
 
@@ -260,10 +260,12 @@ MEETING GRID
 .meeting-grid>.duration-col {
     grid-column: 1;
     padding: 4px 0px 5px 0px;
+    grid-row: span 100;
 }
 .meeting-grid>.subject-col {
     grid-column: 2;
     padding: 4px 0px 4px 10px;
+    grid-row: span 100;
 }
 .meeting-grid>.label-col {
     grid-column: 3;
@@ -272,6 +274,10 @@ MEETING GRID
 .meeting-grid>.person-col {
     grid-column: 4;
     padding: 4px 0px 4px 10px;
+}
+
+.grid-two-rows {
+    grid-row: span 2;
 }
 
 .treasures-header-filler,
@@ -283,6 +289,7 @@ MEETING GRID
     box-sizing: content-box;
     height: 1em;
     grid-column: 1;
+    align-self: center;
 }
 
 .treasures-header-filler {
@@ -302,6 +309,7 @@ MEETING GRID
 }
 
 .treasures-header {
+    grid-column: 2;
     box-sizing: content-box;
     padding: 4px 0px 4px 10px;
     height: 1em;
@@ -312,6 +320,7 @@ MEETING GRID
 }
 
 .ministry-header {
+    grid-column: 2;
     box-sizing: content-box;
     padding: 4px 0px 4px 10px;
     height: 1em;
@@ -322,6 +331,7 @@ MEETING GRID
 }
 
 .lifestyle-header {
+    grid-column: 2;
     box-sizing: content-box;
     padding: 4px 0px 4px 10px;
     height: 1em;
@@ -334,11 +344,11 @@ MEETING GRID
 @media not print {
 
 
-    @media not (min-width: 800px) { 
+    @media not (min-width: 600px) { 
 
         .meeting-grid {
             grid-template-columns: auto max-content;
-            grid-auto-flow: dense;
+            /* grid-auto-flow: dense; */
         }
 
         .meeting-grid>.duration-col {

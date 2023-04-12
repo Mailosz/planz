@@ -121,27 +121,32 @@ public class FieldsController {
         var opt = fieldValueRepository.findByDocAndField(docId, fieldId);
         
         FieldValueModel model;
+        FieldValueHistoryModel fvh = null;
         if (opt.isPresent()) {
             model = opt.get();
 
             //saving history of edits
-            FieldValueHistoryModel fvh = new FieldValueHistoryModel();
+            fvh = new FieldValueHistoryModel();
             fvh.setField(model);
             fvh.setValue(model.getValue());
             fvh.setEditIdentity(model.getEditIdentity());
             fvh.setEditTime(model.getEditTime());
 
-            historyRepository.save(fvh);
-
+            
         } else {
             var doc = documentRepository.findById(docId).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "No document"));
             var field = fieldRepository.findById(fieldId).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "No field"));
-
+            
             model = newFieldValueModel(doc, field);
         }
-
+        
         if (!profiles.contains("admin") && (!model.getDocument().isEditable() || model.getField().getEditProfile() == null || !profiles.contains(model.getField().getEditProfile().getName()))) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+
+
+        if (fvh != null) {
+            historyRepository.save(fvh);
         }
 
         if (value == null) {
@@ -254,6 +259,18 @@ public class FieldsController {
 
             return dto;
         }).collect(Collectors.toList());
+
+        //adding when current value has been edited
+        var value = fieldValueRepository.findById(valueId);
+        if (value.isPresent()) {
+            HistoryItemDTO currentValue = new HistoryItemDTO();
+            currentValue.setValue(value.get().getValue());
+            currentValue.setEditor(value.get().getEditIdentity().getName());
+            currentValue.setTime(value.get().getEditTime().atZone(ZoneId.systemDefault()).format(timeFormattter));
+
+            dtos.add(currentValue);
+        }
+        
 
         return dtos;
     }

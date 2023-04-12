@@ -16,6 +16,9 @@
     border: 1px #888 solid;
     border-radius: 4px;
     box-shadow: 0px 0px 10px rgba(127,127,127,0.3);
+    max-height: calc(100vh - 32px);
+    max-width: calc(100vw - 32px);
+    overflow: auto;
 
     animation: open-popup-menu ease-out 200ms 1 none;
 }

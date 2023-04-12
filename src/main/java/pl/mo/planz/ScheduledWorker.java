@@ -3,11 +3,15 @@ package pl.mo.planz;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
+import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PreDestroy;
 import pl.mo.planz.controllers.Controller;
 import pl.mo.planz.repositories.DocumentRepository;
+import pl.mo.planz.repositories.FieldValueHistoryRepository;
+import pl.mo.planz.repositories.FieldValueRepository;
 import pl.mo.planz.repositories.TemplateRepository;
 
 @Component
@@ -19,11 +23,11 @@ public class ScheduledWorker {
     ScheduledTask scheduledTask;
 
     @Autowired
-    public ScheduledWorker(DocumentRepository docRepo, TemplateRepository templateRepo) {
+    public ScheduledWorker(DocumentRepository docRepo, TemplateRepository templateRepo, FieldValueRepository valueRepo, FieldValueHistoryRepository histRepo) {
 
         this.docRepo = docRepo;
 
-        scheduledTask = new ScheduledTask(docRepo, templateRepo, 30000 * 1000);// about a third of a day
+        scheduledTask = new ScheduledTask(docRepo, templateRepo, valueRepo, histRepo, 30000 * 1000);// about a third of a day
 
         scheduledThread = new Thread(scheduledTask, "schedTask");
         scheduledThread.start();
@@ -45,10 +49,14 @@ class ScheduledTask implements Runnable {
 
     DocumentRepository docRepo;
     TemplateRepository templateRepo;
+    FieldValueRepository valueRepo;
+    FieldValueHistoryRepository histRepo;
 
-    public ScheduledTask(DocumentRepository docRepo, TemplateRepository templateRepo, long sleepTime) {
+    public ScheduledTask(DocumentRepository docRepo, TemplateRepository templateRepo, FieldValueRepository valueRepo, FieldValueHistoryRepository histRepo, long sleepTime) {
         this.docRepo = docRepo;
         this.templateRepo = templateRepo;
+        this.valueRepo = valueRepo;
+        this.histRepo = histRepo;
         this.sleepTime = sleepTime;
     }
 
@@ -63,6 +71,17 @@ class ScheduledTask implements Runnable {
         try {
                 System.out.println("Scheduled task: " + times);
                 times++;
+
+                // Persistence.createEntityManagerFactory
+
+                // RepositoryFactorySupport rfs = new JpaRepositoryFactory(null);
+                
+
+
+                // DocumentRepository docRepo = rfs.getRepository(DocumentRepository.class);
+                // TemplateRepository templateRepo = rfs.getRepository(TemplateRepository.class);
+                // FieldValueRepository valueRepo = rfs.getRepository(FieldValueRepository.class);
+                // FieldValueHistoryRepository histRepo = rfs.getRepository(FieldValueHistoryRepository.class);
 
                 // do the everything
 
@@ -82,7 +101,8 @@ class ScheduledTask implements Runnable {
                 System.out.println("Current document id: " + currentDocId.toString());
 
                 //generating documents
-                DocumentGenerator.generateDocumentsAndRemoveOld(docRepo, templateRepo, true);
+                DocumentGenerator.generateDocuments(docRepo, templateRepo);
+                DocumentGenerator.removeOldDocuments(docRepo, valueRepo, histRepo);
             
                 Thread.sleep(sleepTime);
                 errCount = 0; // reset err counter if no error
@@ -107,6 +127,11 @@ class ScheduledTask implements Runnable {
                     } catch (InterruptedException e) {
                         // TODO Auto-generated catch block
                         e.printStackTrace();
+
+                        if (stop) {
+                            System.out.println("Thread stopped");
+                            return;
+                        }
                     }
                 }
                 if (errCount > 10) {

@@ -5,31 +5,50 @@ import java.time.Period;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.transaction.annotation.Transactional;
+
 import pl.mo.planz.model.DocumentModel;
 import pl.mo.planz.repositories.DocumentRepository;
+import pl.mo.planz.repositories.FieldValueHistoryRepository;
+import pl.mo.planz.repositories.FieldValueRepository;
 import pl.mo.planz.repositories.TemplateRepository;
 
 public class DocumentGenerator {
     
 
-    public static void generateDocumentsAndRemoveOld(DocumentRepository docRepo, TemplateRepository templateRepo, boolean removeOldDocs) {
-        int dayOfWeek = LocalDate.now().getDayOfWeek().getValue() - 1;
-        LocalDate weekStart = LocalDate.now().minusDays(dayOfWeek);
-        List<LocalDate> weeks = weekStart.datesUntil(weekStart.plusMonths(2), Period.ofWeeks(1)).collect(Collectors.toList());
-        LocalDate minimumDate = LocalDate.now().minusMonths(2);
+    @Transactional
+    public static void removeOldDocuments(DocumentRepository docRepo, FieldValueRepository fvRepo, FieldValueHistoryRepository histRepo) {
+
+        LocalDate minimumDate = LocalDate.now().minusMonths(3);
 
         List<DocumentModel> docs = docRepo.findAll();
 
-        if (removeOldDocs) {
-            for (var doc : docs) {
-                if (doc.getWeek().isBefore(minimumDate)) {
-                    if (doc.getNext() != null) doc.getNext().setPrev(null);
-                    if (doc.getPrev() != null) doc.getPrev().setNext(null);
-                    docRepo.delete(doc);
+        for (var doc : docs) {
+            if (doc.getWeek().isBefore(minimumDate)) {
+                if (doc.getNext() != null) doc.getNext().setPrev(null);
+                if (doc.getPrev() != null) doc.getPrev().setNext(null);
+
+                var values = fvRepo.getAllForDocumentId(doc.getId());
+                for (var value : values) {
+                    var items = value.getHistoryItems();
+                    for (var item : items) {
+                        histRepo.delete(item);
+                    }
+                    fvRepo.delete(value);
                 }
+
+                docRepo.delete(doc);
             }
         }
 
+    }
+
+    public static void generateDocuments(DocumentRepository docRepo, TemplateRepository templateRepo) {
+        int dayOfWeek = LocalDate.now().getDayOfWeek().getValue() - 1;
+        LocalDate weekStart = LocalDate.now().minusDays(dayOfWeek);
+        List<LocalDate> weeks = weekStart.datesUntil(weekStart.plusMonths(2), Period.ofWeeks(1)).collect(Collectors.toList());
+
+        List<DocumentModel> docs = docRepo.findAll();
         DocumentModel previous = null;
         for (var week : weeks) {
 
@@ -55,11 +74,14 @@ public class DocumentGenerator {
 
                 doc.setPrev(previous);
                 if (previous != null) {
+                    docRepo.save(doc);
                     previous.setNext(doc);
                     docRepo.save(previous);
+                } else {
+                    docRepo.save(doc);
                 }
                 
-                docRepo.save(doc);
+                
                 previous = doc;
             }
 
