@@ -145,7 +145,7 @@ public class FieldsController {
         }
 
 
-        if (fvh != null) {
+        if (fvh != null) { // save history
             historyRepository.save(fvh);
         }
 
@@ -157,9 +157,9 @@ public class FieldsController {
         model.setEditTime(Instant.now());
         model.setEditIdentity(identity.get());
 
-        fieldValueRepository.save(model);
+        fieldValueRepository.save(model); // save value
 
-        if (model.getDocument().getGeneratedContent() != null) {
+        if (model.getDocument().isEditable() && model.getDocument().getGeneratedContent() != null) {
             model.getDocument().setGeneratedContent(null);
             documentRepository.save(model.getDocument());
         }

@@ -342,7 +342,7 @@ public class Controller {
     }
 
     @GetMapping(value="/")
-    public String openCurrentDocument(@RequestParam(name = "token", required = false) String token) {
+    public String openCurrentDocument(@RequestParam(name = "token", required = false) String token, @RequestParam(name = "mode", required = false) String mode) {
 
         // if (token == null) throw new ResponseStatusException(HttpStatus.FORBIDDEN);
 
@@ -361,7 +361,7 @@ public class Controller {
         if (doc == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
-        return createView(doc, token);
+        return createView(doc, token, mode);
     }
 
     private static Optional<DocumentModel> getCurrentDocument(DocumentRepository docRepo) {
@@ -402,14 +402,14 @@ public class Controller {
     }
 
     @GetMapping(value="/{docId}")
-    public String openDocument(@PathVariable("docId") UUID docId, @RequestParam(name = "token", required = false) String token, HttpServletResponse response) {
+    public String openDocument(@PathVariable("docId") UUID docId, @RequestParam(name = "token", required = false) String token, @RequestParam(name = "mode", required = false) String mode, HttpServletResponse response) {
 
         //if (token == null) throw new ResponseStatusException(HttpStatus.FORBIDDEN);
 
         var opt = documentRepository.findById(docId);
         
         if (opt.isPresent()) {
-            return createView(opt.get(), token);
+            return createView(opt.get(), token, mode);
         } else {
             if (token != null) {
                 response.setHeader("Location", "/?token=" + token);
@@ -421,7 +421,7 @@ public class Controller {
         }
     }
 
-    public String createView(DocumentModel doc, String token) {
+    public String createView(DocumentModel doc, String token, String mode) {
 
         var identity = identityRepository.findFromToken(token);
         Set<String> profiles = getProfiles(identity);
@@ -436,7 +436,20 @@ public class Controller {
             isEdit = true;
         }
 
-        if (!isAdmin && !isEdit) {
+        if (isAdmin) {
+            if (mode != null) {
+                if ("view".equalsIgnoreCase(mode)) {
+                    isAdmin = false;
+                    isEdit = false;
+                } else if ("edit".equalsIgnoreCase(mode)) {
+                    isAdmin = false;
+                }
+            }
+        } else if (isEdit) {
+            if ("view".equalsIgnoreCase(mode)) {
+                isEdit = false;
+            }
+        } else {
             if (!profiles.contains("view")) {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN);
             }
@@ -471,16 +484,11 @@ public class Controller {
             if (doc.isPublic() || isEdit) {
 
                 if (doc.getGeneratedContent() == null) {
-
-                    Map<String, FieldValueModel> valueMap = fieldValueRepository.getAllForDocumentId(doc.getId()).stream().filter((v) -> v.getValue() != null).collect(Collectors.toMap((fv) -> fv.getField().getName(), (fv) -> fv, (val1, val2) -> {return val2;}));
-                    content = PageBuilder.buildTemplateForView(doc, valueMap);
-
-                    doc.setGeneratedContent(content);
-                    documentRepository.save(doc);
-
+                    content = generateDocumentContent(doc);
                 } else {
-                    content = doc.getGeneratedContent();
+                    content =  doc.getGeneratedContent();
                 }
+                
             } else {
                 content = "Podgląd niedostępny";
             }
@@ -490,6 +498,25 @@ public class Controller {
 
         return PageBuilder.buildPage(isAdmin, isEdit, prev, next, content, doc, token, templateRepository);
     }
+
+    /**
+     * Generates document's content
+     * @param doc
+     * @return Document's generated content
+     */
+    public String generateDocumentContent(DocumentModel doc) {
+
+        Map<String, FieldValueModel> valueMap = fieldValueRepository.getAllForDocumentId(doc.getId()).stream().filter((v) -> v.getValue() != null).collect(Collectors.toMap((fv) -> fv.getField().getName(), (fv) -> fv, (val1, val2) -> {return val2;}));
+        String content = PageBuilder.buildTemplateForView(doc, valueMap);
+
+        doc.setGeneratedContent(content);
+        documentRepository.save(doc);
+
+        return content;
+
+    }
+
+
 
     @GetMapping(value="documents")
     public List<DocumentDTO> getDocuments(@RequestParam(name = "token", required = false) String token) {
@@ -519,6 +546,28 @@ public class Controller {
         DocumentGenerator.generateDocuments(documentRepository, templateRepository);
 
     }
+
+    /**
+     * Odświeżanie dokumentu
+     * @param token
+     */
+    @PostMapping(value="update/{docId}")
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @ResponseStatus(code = HttpStatus.OK)
+    public void updateDocumentContent(@PathVariable("docId") UUID docId, @RequestParam(name = "token", required = false) String token) {
+        adminOrThrow(token);
+
+        var docOpt = documentRepository.findById(docId);
+
+        if (docOpt.isPresent()) {
+            docOpt.get().setGeneratedContent(generateDocumentContent(docOpt.get()));
+            documentRepository.save(docOpt.get());
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+
+    }
+
 
     @GetMapping(value="test") 
     public void test() {

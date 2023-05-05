@@ -216,4 +216,21 @@
             console.log(resp);
         });
     }
+
+    function updateDocumentContent() {
+        let url = "update/" + docId + "?token=" + token;
+        let request = new Request(url, {
+            method: "POST",
+        });
+        fetch(request).then((resp) => {
+            if (resp.ok) {
+                showResultPopup("success-popup", "Wykonano");
+            } else {
+                showResultPopup("fail-popup", "Błąd");
+            }
+            console.log(resp);
+        });
+    }
+
+    
 </script>
