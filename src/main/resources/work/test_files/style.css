@@ -8,8 +8,7 @@ body {
 }
 
 #doc-container {
-    margin: auto;
-    
+    margin: auto auto 20vh auto;
 }
 
 .page {

@@ -18,20 +18,34 @@
     };
 
     function updateFieldValue(input) {
+
         let url = "values/" + docId + "/" + input.id + "?token=" + token;
         let request = new Request(url, {
             method: "PUT",
             body: input.value,
         });
-        fetch(request).then((resp) => {
-            if (resp.ok) {
-                showResultPopup("success-popup", "Zapisano zmianę");
-            } else {
-                showResultPopup("fail-popup", "Błąd zapisu");
-            }
-            console.log(resp);
-        });
+
+        let send = (firstTime) => {
+            fetch(request).then((resp) => {
+                if (resp.ok) {
+                    showResultPopup("success-popup", "Zapisano zmianę");
+                } else {
+                    if (firstTime) {
+                        console.log("Problem, trying again...")
+                        send(false);
+                    } else {
+                        showResultPopup("fail-popup", "Błąd zapisu");
+                    }
+                }
+                console.log(resp);
+            });
+        }
+
+        send(true);
+
     };
+
+
 
     function fieldInput(event) {
         resetTimeout(event.target.getAttribute("name"), () => updateFieldValue(event.target))
