@@ -100,6 +100,12 @@ public class Controller {
         tm.setContent(template);
 
         List<TemplateFieldModel> oldFields = tm.getFields();
+        if (oldFields != null) {
+            for (var oldField : oldFields) {
+                oldField.setTemplate(null);
+            }
+        }
+
         if (oldFields == null) oldFields = new ArrayList<>();
         List<TemplateFieldDTO> foundFields = tp.getFields();
         List<TemplateFieldModel> newFields = new ArrayList<>(foundFields.size());
@@ -146,9 +152,21 @@ public class Controller {
         }
 
         tm.setFields(newFields);
+        fieldRepository.deleteAllOrphanedFields();
+        
+        // for (var oldField : oldFields) {
+        //     try {
+        //         fieldRepository.delete(oldField);
+        //     } catch (Exception ex) {
+        //         System.out.println("Nie udało się usunąć pola o id " + oldField.getId());
+        //         ex.printStackTrace();
+        //     }
+        // }
+
         templateRepository.save(tm);
     }
 
+    @Transactional
     @PostMapping(value="templates")
     public String postTemplate(@RequestBody String template, @RequestParam(name = "token", required = false) String token, @RequestParam(name = "name", required = false) String name) {
 
@@ -169,6 +187,7 @@ public class Controller {
         return tm.getId().toString();
     }
 
+    @Transactional
     @PutMapping(value="templates/{uuid}")
     public String updateTemplate(@PathVariable("uuid") UUID id, @RequestParam(name = "token", required = false) String token, @RequestParam(name = "name", required = false) String name, @RequestBody(required = false) String content) {
         

@@ -1,9 +1,9 @@
 
-<!-- Plan pełny -->
+<!-- Plan Obsługa -->
 <div class="plan">
     <div class="week-header flex-row">Plan zebrań w tygodniu od @type=auto|value=tydzien-od@</div>
     <div class="cleaning-duty"><span>Dyżur sprzątania sali w tygodniu od @type=auto|value=tydzien-od@ -&nbsp;</span><span>@name=nr-grupy|list=grupy|edit=edit@</span></div>
-    <div class="thursday-header flex-row">@name=czwartek-dzien|edit=admin|value=CZWARTEK@&ensp;|&ensp;@type=auto|value=czwartek@</div>
+    <div class="thursday-header flex-row">@name=czwartek-dzien|edit=admin|value=WTOREK@&ensp;|&ensp;@type=auto|value=wtorek@</div>
     <div class="meeting-div">
         <table class="meeting-table">
             <tr>
@@ -143,14 +143,16 @@
                 <td class="study-header">Studium Strażnicy</td>
             </tr>
             <tr>
-                <td class="duration-col" rowspan="2">@name=niedz-studium-czas|edit=admin|value=60 min@</td>
-                <td class="subject-col" rowspan="2"><div class="flex-row">@niedz-studium-temat|edit=edit@</div></td>
+                <td class="duration-col">@name=niedz-studium-czas|edit=admin|value=30 min@</td>
+                <td class="subject-col"><div class="flex-row">@niedz-studium-temat|edit=edit@</div></td>
                 <td class="label-col">@name=niedz-studium-prow-lbl|edit=admin|value=Prowadzący:@</td>
                 <td class="person-col">@name=niedz-studium-prow|list=bracia|edit=edit@</td>
             </tr>
             <tr>
-                <td class="label-col">@name=niedz-studium-lektor-lbl|edit=admin|value=Lektor:@</td>
-                <td class="person-col">@niedz-studium-lektor|list=bracia|edit=edit@</td>
+                <td class="duration-col">@name=niedz-wyklad-nadzorcy-czas|edit=admin|value=30 min@</td>
+                <td class="subject-col"><div class="flex-row">@niedz-wyklad-nadzorcy-temat|edit=edit@</div></td>
+                <td class="label-col">@name=niedz-wyklad-nadzorcy-lbl|edit=admin@</td>
+                <td class="person-col">@niedz-wyklad-nadzorcy-mowca|list=bracia|edit=edit@</td>
             </tr>
             <tr>
                 <td class="field-header"></td>
