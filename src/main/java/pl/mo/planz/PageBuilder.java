@@ -17,6 +17,7 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.UUID;
 
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 
 import pl.mo.planz.model.DocumentModel;
@@ -57,7 +58,7 @@ public class PageBuilder {
         
     }
 
-    public static String buildPage(boolean isAdmin, boolean isEdit, String prev, String next, String document, DocumentModel doc, String token, TemplateRepository templateRepository) {
+    public static String buildPage(boolean isAdmin, boolean isEdit, String prev, String next, String document, DocumentModel doc, String token, TemplateRepository templateRepository, boolean changed) {
         
         String content = htmlStart;
 
@@ -75,6 +76,9 @@ public class PageBuilder {
             content += "</select></label>&emsp;";
 
             content += "<button onclick='updateDocumentContent()'>Odśwież</button>";
+            if (changed) {
+                content += "<span id=\"doc-changed-label\">&ensp;Dokument zawiera niezapisane zmiany</span>";
+            }
             content += "</div>";
             content += adminScript;
         }
@@ -105,15 +109,20 @@ public class PageBuilder {
         return content;
     }
 
-    public static String buildDocumentForEdit(DocumentModel docModel, Map<String, FieldValueModel> valueMap, Set<String> profiles, String token) {
+    public static Pair<String, Boolean> buildDocumentForEdit(DocumentModel docModel, Map<String, FieldValueModel> valueMap, Set<String> profiles, String token) {
 
         String helpInputs = "<input type=\"hidden\" id=\"token-input\" value=\"" + token + "\">"
             + "<input type=\"hidden\" id=\"document-id-input\" value=\"" + docModel.getId() + "\">";
+
+        if (docModel.getGeneratedTime() != null) {
+            helpInputs += "<input type=\"hidden\" id=\"document-gen-time\" value=\"" + docModel.getGeneratedTime().toString() + "\";>";
+        }
 
         List<TemplateFieldModel> fields = docModel.getTemplate().getFields();
         fields.sort((f1, f2) -> Integer.compare(f2.getPos(), f1.getPos()));
 
         boolean isAdmin = profiles.contains("admin");
+        boolean anythingChanged = false;
 
         //building template
         String template = docModel.getTemplate().getContent();
@@ -140,7 +149,12 @@ public class PageBuilder {
                 String input = getEditValue(field, docModel, valueModel, valueMap, listname);
                 
                 if (isAdmin) {
-                    input = "<div class=\"edit-hud admin\" >" + input + "<div class='more' onclick=\"showAdminPopup('" + field.getId().toString() + "', '" + (valueModel!= null?valueModel.getId():"") + "', event)\">...</div></div>";
+                    boolean changed = false;
+                    if (valueModel != null && docModel.getGeneratedTime() != null && valueModel.getEditTime() != null && docModel.getGeneratedTime().isBefore(valueModel.getEditTime())) {
+                        changed = true;
+                        anythingChanged = true;
+                    }
+                    input = "<div class=\"edit-hud admin" + (changed?" changed":"")+ "\" >" + input + "<div class='more' onclick=\"showAdminPopup('" + field.getId().toString() + "', '" + (valueModel!= null?valueModel.getId():"") + "', event)\">...</div></div>";
                 } else {
                     input = "<div class=\"edit-hud\" >" + input + "</div>";
                 }
@@ -162,7 +176,7 @@ public class PageBuilder {
             }
         }
 
-        return helpInputs + sb.toString() + templateBuffer.toString();
+        return Pair.of(helpInputs + sb.toString() + templateBuffer.toString(), anythingChanged);
     }
 
     private static String getEditValue(TemplateFieldModel field, DocumentModel docModel, FieldValueModel valueModel, Map<String, FieldValueModel> valueMap, String listname) {

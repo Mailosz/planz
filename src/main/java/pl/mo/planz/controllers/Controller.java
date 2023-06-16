@@ -476,10 +476,13 @@ public class Controller {
         }
 
         String content = "";
+        boolean changed = false;
         if (isAdmin || (isEdit && doc.isEditable())) {
             Map<String, FieldValueModel> valueMap = fieldValueRepository.getAllForDocumentId(doc.getId()).stream().filter((v) -> v.getValue() != null).collect(Collectors.toMap((fv) -> fv.getField().getName(), (fv) -> fv, (val1, val2) -> {return val2;}));
         
-            content = PageBuilder.buildDocumentForEdit(doc, valueMap, profiles, token);
+            var pair = PageBuilder.buildDocumentForEdit(doc, valueMap, profiles, token);
+            content = pair.getFirst();
+            changed = pair.getSecond();
         } else {
             if (doc.isPublic() || isEdit) {
 
@@ -496,7 +499,7 @@ public class Controller {
         }
 
 
-        return PageBuilder.buildPage(isAdmin, isEdit, prev, next, content, doc, token, templateRepository);
+        return PageBuilder.buildPage(isAdmin, isEdit, prev, next, content, doc, token, templateRepository, changed);
     }
 
     /**
@@ -510,6 +513,7 @@ public class Controller {
         String content = PageBuilder.buildTemplateForView(doc, valueMap);
 
         doc.setGeneratedContent(content);
+        doc.setGeneratedTime(Instant.now());
         documentRepository.save(doc);
 
         return content;

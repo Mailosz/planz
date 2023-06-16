@@ -161,6 +161,7 @@ public class FieldsController {
 
         if (model.getDocument().isEditable() && model.getDocument().getGeneratedContent() != null) {
             model.getDocument().setGeneratedContent(null);
+            model.getDocument().setGeneratedTime(null);
             documentRepository.save(model.getDocument());
         }
     }

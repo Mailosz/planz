@@ -225,6 +225,12 @@
         fetch(request).then((resp) => {
             if (resp.ok) {
                 showResultPopup("success-popup", "Wykonano");
+
+                try {
+                    document.getElementById("doc-changed-label").style.display = "none";
+                } catch {
+
+                }
             } else {
                 showResultPopup("fail-popup", "Błąd");
             }

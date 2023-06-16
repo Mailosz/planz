@@ -16,7 +16,7 @@
         right: 20px;
         bottom: 20px;
         padding: 10px;
-        box-shadow: rgba(0,0,0,0.2);
+        box-shadow: 0 0 10px rgba(0,0,0,0.2);
         animation: fade-out 5s;
         z-index: 100;
     }
@@ -34,6 +34,18 @@
     .fail-popup {
         background-color: rgb(255, 168, 168);
         border: 1px rgb(248, 46, 46) solid;
+    }
+
+    #save-error-overlay {
+        position: fixed;;
+        top: 25%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgb(255, 168, 168);
+        border: 1px rgb(248, 46, 46) solid;
+        padding: 10px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        z-index: 100;
     }
 
 
@@ -70,8 +82,34 @@
 
     }
 
+    .overlay {
+        position: absolute;
+        top: 0px;
+        visibility: hidden;
+        pointer-events: none;
+        opacity: 0.7;
+        background-color: white;
+        padding: 6px;
+        border: 1px black solid;
+        box-shadow: 0 0 10px rgba(127,127,127, 0.7);
+    }
+
+    .overlay.visible {
+        visibility: visible;
+    }
+
+    .edit-hud.changed {
+        outline: 8px solid rgba(127,255,255,0.7);
+        border-radius: 1px;
+    }
+
     .edit-hud input.unknown {
         outline: 8px solid rgba(255,255,0,0.7);
+        border-radius: 1px;
+    }
+
+    .edit-hud input.save-fail {
+        outline: 8px solid rgba(255,0,0,0.7);
         border-radius: 1px;
     }
 

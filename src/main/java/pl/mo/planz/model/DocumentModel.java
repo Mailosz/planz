@@ -1,5 +1,6 @@
 package pl.mo.planz.model;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -61,6 +62,10 @@ public class DocumentModel {
     @Getter
     @Setter
     String generatedContent;
+
+    @Getter
+    @Setter
+    Instant generatedTime;
 
     @OneToMany(mappedBy = "document")
     @Getter

@@ -4,6 +4,24 @@
     var token = document.getElementById("token-input").value;
     var docId = document.getElementById("document-id-input").value;
 
+    var genTime = document.getElementById("document-gen-time");
+
+    var fieldErrorsSet = new Set();
+    var errorResenderTimeout = null;
+    var resendCounter = 0;
+
+    if (genTime != null) {
+        genTime = genTime.value;
+
+        if (genTime != null) {
+            try {
+                genTime = new Date(genTime);
+            } catch {
+                genTime = null;
+            }
+        }
+    }
+
     function cancelTimeout(name) {
         let timeout = timeouts[name];
         if (timeout != null) {
@@ -12,43 +30,75 @@
         timeouts[name] = null;
     }
 
-    function resetTimeout(name, func) {
+    function resetTimeout(name, func, time) {
         cancelTimeout(name);
-        timeouts[name] = setTimeout(() =>{func(); timeouts[name] = null;}, 1500);
+        timeouts[name] = setTimeout(() =>{func(); timeouts[name] = null;}, time);
     };
 
     function updateFieldValue(input) {
 
         let url = "values/" + docId + "/" + input.id + "?token=" + token;
+
         let request = new Request(url, {
             method: "PUT",
             body: input.value,
         });
 
-        let send = (firstTime) => {
-            fetch(request).then((resp) => {
-                if (resp.ok) {
-                    showResultPopup("success-popup", "Zapisano zmianę");
-                } else {
-                    if (firstTime) {
-                        console.log("Problem, trying again...")
-                        send(false);
-                    } else {
-                        showResultPopup("fail-popup", "Błąd zapisu");
-                    }
-                }
+        return fetch(request).then((resp) => {
+            if (resp.ok) {
+                showResultPopup("success-popup", "Zapisano zmianę");
+                input.classList.remove("save-fail");
+                fieldErrorsSet.delete(input);
+                resendCounter = 0;
+            } else {
+                console.error("Błąd zapisu");
                 console.log(resp);
-            });
-        }
 
-        send(true);
+                input.classList.add("save-fail");
+                fieldErrorsSet.add(input);
+            }
+            invokeResendErrors();
+        });
 
     };
 
+    function invokeResendErrors() {
+        if (errorResenderTimeout != null) {
+            clearTimeout(errorResenderTimeout);
+        }
 
+        let errorOverlay = document.getElementById("save-error-overlay");
+
+        if (errorOverlay == null) {
+            errorOverlay = document.createElement("div");
+            errorOverlay.id = "save-error-overlay";
+            errorOverlay.innerText = "Błąd zapisu. Poczekaj chwilę...";
+            document.body.append(errorOverlay);
+        }
+
+        if (fieldErrorsSet.size > 0) {
+            errorOverlay.style.display = "block";
+
+            errorResenderTimeout = setTimeout(async () =>  {
+                resendCounter++;
+                console.log("Error resend counter: " + resendCounter);
+
+                for (let errorInput of fieldErrorsSet) {
+                    await updateFieldValue(errorInput);
+                }
+
+                invokeResendErrors();
+            }, 1000 * (resendCounter));
+        } else {
+            errorOverlay.style.display = "none";
+            resendCounter = 0;
+        }
+
+
+    }
 
     function fieldInput(event) {
-        resetTimeout(event.target.getAttribute("name"), () => updateFieldValue(event.target))
+        resetTimeout(event.target.getAttribute("name"), () => updateFieldValue(event.target), 1500)
     }
 
     function fieldChange(event) {
@@ -67,8 +117,7 @@
     }
 
     function checkInput(input) {
-        console.log("here")
-        
+       
         let datalist = input.list;
         if (datalist == null) {
             input.classList.remove("unknown");
