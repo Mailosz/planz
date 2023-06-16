@@ -137,6 +137,8 @@ public class Controller {
                 } else {
                     throw new TemplateParsingException("No profile");
                 }
+            } else {
+                tfm.setEditProfile(null);
             }
 
             if (field.getList() != null) {
@@ -146,6 +148,8 @@ public class Controller {
                 } else {
                     throw new TemplateParsingException("No list");
                 }
+            } else {
+                tfm.setDatalist(null);
             }
 
             newFields.add(tfm);
