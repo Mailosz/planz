@@ -274,8 +274,8 @@ public class PageBuilder {
                 case 5 -> "maja";
                 case 6 -> "czerwca";
                 case 7 -> "lipca";
-                case 9 -> "sierpnia";
-                case 8 -> "września";
+                case 8 -> "sierpnia";
+                case 9 -> "września";
                 case 10 -> "października";
                 case 11 -> "listopada";
                 case 12 -> "grudnia";
