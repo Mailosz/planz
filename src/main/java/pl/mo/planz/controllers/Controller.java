@@ -375,6 +375,7 @@ public class Controller {
         if (opt.isPresent()) {
             doc = opt.get();
         } else {
+            currentDocumentId = null;
             var docs = documentRepository.findAll();
             if (docs.size() > 0) {
                 doc = docs.get(0);
@@ -389,7 +390,7 @@ public class Controller {
 
     private static Optional<DocumentModel> getCurrentDocument(DocumentRepository docRepo) {
         if (currentDocumentId != null) {
-            
+
         } else {
             currentDocumentId = findCurrentDocument(docRepo);
         }
@@ -405,15 +406,16 @@ public class Controller {
         DocumentModel current = null;
         long diff = 0;
         for (var doc : docs) {
-            if (now.isAfter(doc.getWeek()) && now.isBefore(doc.getWeek().plusDays(7))) {
+            System.out.println(">>> DOC: " + doc.getId());
+            if (now.isEqual(doc.getWeek()) || (now.isAfter(doc.getWeek()) && now.isBefore(doc.getWeek().plusDays(7)))) {
                 //perfect match
                 current = doc;
                 break;
             } else if (current == null) {
                 current = doc;
-                diff = ChronoUnit.DAYS.between(now, doc.getWeek());
+                diff = Math.abs(ChronoUnit.DAYS.between(now, doc.getWeek()));
             } else {
-                long d = ChronoUnit.DAYS.between(now, doc.getWeek());
+                long d = Math.abs(ChronoUnit.DAYS.between(now, doc.getWeek()));
                 if (d < diff) {
                     current = doc;
                     diff = d;
