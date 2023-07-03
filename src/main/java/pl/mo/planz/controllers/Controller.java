@@ -406,7 +406,6 @@ public class Controller {
         DocumentModel current = null;
         long diff = 0;
         for (var doc : docs) {
-            System.out.println(">>> DOC: " + doc.getId());
             if (now.isEqual(doc.getWeek()) || (now.isAfter(doc.getWeek()) && now.isBefore(doc.getWeek().plusDays(7)))) {
                 //perfect match
                 current = doc;
