@@ -29,12 +29,13 @@ public class DocumentGenerator {
                 if (doc.getPrev() != null) doc.getPrev().setNext(null);
 
                 var values = fvRepo.getAllForDocumentId(doc.getId());
-                for (var value : values) {
-                    var items = value.getHistoryItems();
-                    for (var item : items) {
-                        histRepo.delete(item);
-                    }
-                    fvRepo.delete(value);
+                for (var fieldValue : values) {
+                    histRepo.deleteHistoryForField(fieldValue.getId());
+                    // var items = value.getHistoryItems();
+                    // // for (var item : items) {
+                    // //     histRepo.delete(item);
+                    // // }
+                    fvRepo.delete(fieldValue);
                 }
 
                 docRepo.delete(doc);

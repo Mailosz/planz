@@ -102,6 +102,7 @@ class ScheduledTask implements Runnable {
 
                 //generating documents
                 DocumentGenerator.generateDocuments(docRepo, templateRepo);
+                errCount = 0;  // przynajmniej część się wykonała, nie chcemy przerywać threada
                 DocumentGenerator.removeOldDocuments(docRepo, valueRepo, histRepo);
             
                 Thread.sleep(sleepTime);

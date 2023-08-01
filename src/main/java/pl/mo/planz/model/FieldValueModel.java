@@ -60,7 +60,6 @@ public class FieldValueModel {
     Instant editTime;
 
     @OneToMany(mappedBy = "field", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
-    @OnDelete(action = OnDeleteAction.CASCADE)
     @Getter
     @Setter
     List<FieldValueHistoryModel> historyItems;
