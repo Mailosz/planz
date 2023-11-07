@@ -14,39 +14,69 @@
 <script>
     function changePublic(event) {
 
-        fetch("documents/" + docId + "/change/public/" + event.target.checked + "?token=" + token).then((resp) => {
-            return resp.text();
-        }).then((text) => {
-            if (text == "true") {
-                event.target.checked = true;
-            } else if (text == "false") {
-                event.target.checked = false;
-            }
-        });
+        let isPublic = event.target.checked;
 
+        let url = "documents/" + docId + "/change/public/" + isPublic + "?token=" + token;
+        let options = null;
+        handleRequest(event.target.id, url, options, (resp) => {
+            return resp.text().then((text) => {
+                if (resp.ok) {
+                    if (text == "true") {
+                        event.target.checked = true;
+                    } else if (text == "false") {
+                        event.target.checked = false;
+                    }
+                } else {
+                    throw "not ok";
+                }
+
+            }).catch((err) => {
+                event.target.checked = !isPublic;
+            });
+        });
     }
 
     function changeEditable(event) {
+        
+        let isEditable = event.target.checked;
 
-        fetch("documents/" + docId + "/change/editable/" + event.target.checked + "?token=" + token).then((resp) => {
-            return resp.text();
-        }).then((text) => {
-            if (text == "true") {
-                event.target.checked = true;
-            } else if (text == "false") {
-                event.target.checked = false;
-            }
+        let url = "documents/" + docId + "/change/editable/" + isEditable + "?token=" + token;
+        let options = null;
+
+        handleRequest(event.target.id, url, options, (resp) => {
+            return resp.text().then((text) => {
+                if (resp.ok) {
+                    if (text == "true") {
+                        event.target.checked = true;
+                    } else if (text == "false") {
+                        event.target.checked = false;
+                    }
+                } else {
+                    throw "not ok";
+                }
+
+            }).catch((err) => {
+                event.target.checked = !isEditable;
+            });
         });
 
     }
 
     function templateChange(event) {
         fetch("documents/" + docId + "/change/template/" + event.target.options[event.target.selectedIndex].value + "?token=" + token).then((resp) => {
-            return resp.text();
+            if (resp.ok) {
+                return resp.text();
+            } else {
+                throw "not ok";
+            }
         }).then((text) => {
             if (text == "true") {
                 location.reload();
+            } else {
+                throw "no nie";
             }
+        }).catch((err) => {
+            showResultPopup("fail-popup", "Błąd");
         });
     }
 

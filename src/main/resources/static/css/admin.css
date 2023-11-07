@@ -144,6 +144,9 @@
         outline: 8px solid rgba(255,0,0,0.7);
         border-radius: 1px;
     }
+    .save-fail {
+        outline: 8px solid rgba(255,0,0,0.7);
+    }
 
     .edit-hud:hover .more {
         display: block;

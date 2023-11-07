@@ -54,12 +54,22 @@
                 if (resp.ok)  {
                     requestData.status = "success";
                     resendCounter = 0;
+
+                    let input = document.getElementById(id);
+                    if (input != null) {
+                        input.classList.remove("save-fail");
+                    }
                 } else {
                     requestData.status = "error";
-                    resendCounter = resendCounter + 2;
+                    resendCounter++;
 
                     console.error("Błąd żądania");
                     console.log(resp);
+
+                    let input = document.getElementById(id);
+                    if (input != null) {
+                        input.classList.add("save-fail");
+                    }
                 }
 
                 handler(resp);
@@ -205,7 +215,7 @@
         };
 
 
-        handleRequest(input.id, url, options, (resp) => {if (resp.ok) input.classList.remove("save-fail"); else input.classList.add("save-fail");});
+        handleRequest(input.id, url, options, (resp) => {});
 
 
         // return fetch(request).then((resp) => {
@@ -254,14 +264,14 @@
             return;
         }
 
-        let value = input.value.toUpperCase();
+        let value = input.value.trim().toUpperCase();
         if (value == "") {
             input.classList.remove("unknown");
             return;
         }
 
         for (let option of datalist.options) {
-            if (value == option.value.toUpperCase()) {
+            if (value == option.value.trim().toUpperCase()) {
                 
                 input.classList.remove("unknown");
 
@@ -287,7 +297,7 @@
         for (let requestId in sentRequests) {
             let requestData = sentRequests[requestId];
 
-            if (requestData != null && (requestData.status == "wait" || requestData.status == "error")) {
+            if (requestData != null && (requestData.status == "wait" || requestData.status == "error" || requestData.status == "fail")) {
                 event.preventDefault();
                 event.returnValue = "Zmiany nie zostały zapisane, czy na pewno chcesz wyjść?";
                 break;
