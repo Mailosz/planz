@@ -250,7 +250,7 @@ public class Controller {
 
     private Set<String> getProfilesOrThrow(String token) {
         var identity = identityRepository.findFromToken(token);
-        if (!identity.isPresent()) {
+        if (!identity.isPresent() || !identity.get().isActive()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
@@ -448,8 +448,7 @@ public class Controller {
 
     public String createView(DocumentModel doc, String token, String mode) {
 
-        var identity = identityRepository.findFromToken(token);
-        Set<String> profiles = getProfiles(identity);
+        Set<String> profiles = getProfilesOrThrow(token);
 
         boolean isAdmin = false;
         if (profiles.contains("admin")) {

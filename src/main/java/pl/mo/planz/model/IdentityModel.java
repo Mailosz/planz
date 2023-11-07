@@ -28,6 +28,10 @@ public class IdentityModel {
 
     @Getter
     @Setter
+    boolean isActive = true;
+
+    @Getter
+    @Setter
     @Enumerated(EnumType.STRING)
     IdentityType type = IdentityType.TOKEN;
 
