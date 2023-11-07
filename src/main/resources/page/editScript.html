@@ -41,26 +41,28 @@
     /**
      *  Sends a request and makes sure it goes through (if not displays error and tries again)
      */
-    function handleRequest(id, request, handler) {
+    function handleRequest(id, url, options, handler) {
 
         let requestData = {
             id: id,
-            request: request,
+            url: url,
+            options: options,
             handler: handler,
             status: "wait",
-            promise: fetch(request).then((resp) => {
+            promise: fetch(new Request(url, options)).then((resp) => {
 
                 if (resp.ok)  {
                     requestData.status = "success";
                     resendCounter = 0;
-                    handler(resp);
                 } else {
                     requestData.status = "error";
-                    resendCounter++;
+                    resendCounter = resendCounter + 2;
 
                     console.error("Błąd żądania");
                     console.log(resp);
                 }
+
+                handler(resp);
 
                 // resend errors
                 if (errorResenderTimeout != null) {
@@ -73,7 +75,7 @@
         }
 
         sentRequests[id] = requestData;
-        updateStatusIndicator();
+        updateStatusIndicator("wait");
     }
 
     
@@ -100,10 +102,9 @@
         if (errorsList.length > 0) {
 
             for (let requestData of errorsList) {
-                handleRequest(requestData.id, new Request(requestData.request), requestData.handler);
+                handleRequest(requestData.id, requestData.url, requestData.options, requestData.handler);
             }
         }
-        updateStatusIndicator();
     }
 
     // function invokeResendErrors() {
@@ -141,18 +142,20 @@
 
     // }
 
-    function updateStatusIndicator() {
+    function updateStatusIndicator(status) {
 
-        let status = "success";
-        for (let requestId in sentRequests) {
-            let requestData = sentRequests[requestId];
+        if (status == null) {
+            status = "success";
+            for (let requestId in sentRequests) {
+                let requestData = sentRequests[requestId];
 
-            if (requestData != null) {
-                if (requestData.status == "wait") {
-                    status = "wait";
-                } else if (requestData.status == "error") {
-                    status = "error";
-                    break;
+                if (requestData != null) {
+                    if (requestData.status == "wait") {
+                        status = "wait";
+                    } else if (requestData.status == "error") {
+                        status = "error";
+                        break;
+                    }
                 }
             }
         }
@@ -196,13 +199,13 @@
 
         let url = "values/" + docId + "/" + input.id + "?token=" + token;
 
-        let request = new Request(url, {
+        let options = {
             method: "PUT",
             body: input.value,
-        });
+        };
 
 
-        handleRequest(input.id, request, (resp) => {if (resp.ok) input.classList.remove("save-fail"); else input.classList.add("save-fail");});
+        handleRequest(input.id, url, options, (resp) => {if (resp.ok) input.classList.remove("save-fail"); else input.classList.add("save-fail");});
 
 
         // return fetch(request).then((resp) => {
