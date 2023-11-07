@@ -338,6 +338,7 @@ public class Controller {
 
         if (docOpt.isPresent() && temOpt.isPresent()) {
             docOpt.get().setTemplate(temOpt.get());
+            docOpt.get().setGeneratedContent(null);
             documentRepository.save(docOpt.get());
             return "true";
         } else {
