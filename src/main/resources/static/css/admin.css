@@ -48,6 +48,38 @@
         z-index: 100;
     }
 
+    #status-indicator {
+        position: fixed;;
+        top: 25%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+
+        padding: 10px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        z-index: 100;
+    }
+
+        #status-indicator.success {
+            background-color: rgb(171, 233, 171);
+            border: 1px rgb(14, 221, 14) solid;
+        }
+            #status-indicator.success::before {
+                content: "Zmiany zapisane"
+            }
+        #status-indicator.wait {
+            background-color: rgb(188, 210, 255);
+            border: 1px rgb(121, 139, 255) solid;
+        }
+            #status-indicator.wait::before {
+                content: "Proszę czekać..."
+            }
+        #status-indicator.error {
+            background-color: rgb(255, 168, 168);
+            border: 1px rgb(248, 46, 46) solid;
+        }
+            #status-indicator.error::before {
+                content: "Błąd zapisu. Spróbuj ponownie za chwilę."
+            }
 
     .meeting-div {
         margin: 10px 0px;

@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.springframework.transaction.annotation.Transactional;
 
 import pl.mo.planz.model.DocumentModel;
+import pl.mo.planz.model.TemplateModel;
 import pl.mo.planz.repositories.DocumentRepository;
 import pl.mo.planz.repositories.FieldValueHistoryRepository;
 import pl.mo.planz.repositories.FieldValueRepository;
@@ -19,26 +20,37 @@ public class DocumentGenerator {
     @Transactional
     public static void removeOldDocuments(DocumentRepository docRepo, FieldValueRepository fvRepo, FieldValueHistoryRepository histRepo) {
 
-        LocalDate minimumDate = LocalDate.now().minusMonths(3);
+        LocalDate minimumDate = LocalDate.now().minusMonths(6);
 
         List<DocumentModel> docs = docRepo.findAll();
 
         for (var doc : docs) {
             if (doc.getWeek().isBefore(minimumDate)) {
-                if (doc.getNext() != null) doc.getNext().setPrev(null);
-                if (doc.getPrev() != null) doc.getPrev().setNext(null);
-
-                var values = fvRepo.getAllForDocumentId(doc.getId());
-                for (var fieldValue : values) {
-                    histRepo.deleteHistoryForField(fieldValue.getId());
-                    // var items = value.getHistoryItems();
-                    // // for (var item : items) {
-                    // //     histRepo.delete(item);
-                    // // }
-                    fvRepo.delete(fieldValue);
+                if (doc.getNext() != null) {
+                    doc.getNext().setPrev(null);
+                    docRepo.save(doc.getNext());
+                    doc.setNext(null);
+                }
+                if (doc.getPrev() != null) {
+                    doc.getPrev().setNext(null);
+                    docRepo.save(doc.getPrev());
+                    doc.setPrev(null);
                 }
 
+                // var values = fvRepo.getAllForDocumentId(doc.getId());
+                // for (var fieldValue : values) {
+                //     histRepo.deleteHistoryForField(fieldValue.getId());
+                //     // var items = value.getHistoryItems();
+                //     // // for (var item : items) {
+                //     // //     histRepo.delete(item);
+                //     // // }
+                //     fvRepo.delete(fieldValue);
+                // }
+
+                doc = docRepo.save(doc);
                 docRepo.delete(doc);
+
+                System.out.println("Document ID: " + doc.getId().toString() + " of " +  doc.getWeek().toString() + " removed");
             }
         }
 
@@ -47,46 +59,66 @@ public class DocumentGenerator {
     public static void generateDocuments(DocumentRepository docRepo, TemplateRepository templateRepo) {
         int dayOfWeek = LocalDate.now().getDayOfWeek().getValue() - 1;
         LocalDate weekStart = LocalDate.now().minusDays(dayOfWeek);
-        List<LocalDate> weeks = weekStart.datesUntil(weekStart.plusMonths(2), Period.ofWeeks(1)).collect(Collectors.toList());
+        List<LocalDate> weeks = weekStart.datesUntil(weekStart.plusMonths(3), Period.ofWeeks(1)).collect(Collectors.toList());
 
-        List<DocumentModel> docs = docRepo.findAll();
-        DocumentModel previous = null;
-        for (var week : weeks) {
+        if (weeks.size() > 0) {
+            //choosing template
+            List<TemplateModel> allTemplates = templateRepo.findAll();
 
-            var docOpt = docs.stream().filter((d) -> d.getWeek().isEqual(week)).findFirst();
-            DocumentModel doc;
-            if (docOpt.isPresent()) {
-
-                doc = docOpt.get();
-
-                if (previous != null) {
-                    doc.setPrev(previous);
-                    previous.setNext(doc);
-
-                    docRepo.save(previous);
-                    docRepo.save(doc);
-                }
-
-            } else { // create new document
-                doc = new DocumentModel();
-
-                doc.setWeek(week);
-                doc.setTemplate(templateRepo.findAll().get(0));
-
-                doc.setPrev(previous);
-                if (previous != null) {
-                    docRepo.save(doc);
-                    previous.setNext(doc);
-                    docRepo.save(previous);
-                } else {
-                    docRepo.save(doc);
-                }
-                
-                
-                previous = doc;
+            if (allTemplates.size() == 0) {
+                System.out.println("No template");
+                return;
             }
 
-            previous = doc;
-        };
+            TemplateModel defaultTemplate = allTemplates.get(0);
+            for (var template : allTemplates) {
+                if (template.isDefault()) {
+                    defaultTemplate = template;
+                    break;
+                }
+            }
+
+
+            //creating documents
+            List<DocumentModel> docs = docRepo.findAll();
+            DocumentModel previous = null;
+            for (var week : weeks) {
+
+                var docOpt = docs.stream().filter((d) -> d.getWeek().isEqual(week)).findFirst();
+                DocumentModel doc;
+                if (docOpt.isPresent()) { // setting next and prev weeks on every document
+
+                    doc = docOpt.get();
+
+                    if (previous != null) {
+                        doc.setPrev(previous);
+                        previous.setNext(doc);
+
+                        docRepo.save(previous);
+                        docRepo.save(doc);
+                    }
+
+                } else { // create new document
+                    doc = new DocumentModel();
+
+                    doc.setWeek(week);
+                    doc.setTemplate(defaultTemplate);
+
+                    doc.setPrev(previous);
+                    if (previous != null) {
+                        docRepo.save(doc);
+                        previous.setNext(doc);
+                        docRepo.save(previous);
+                    } else {
+                        docRepo.save(doc);
+                    }
+                    
+                    
+                    previous = doc;
+                }
+
+                previous = doc;
+            };
+        }
     }
 }

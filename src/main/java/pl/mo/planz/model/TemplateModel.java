@@ -29,6 +29,10 @@ public class TemplateModel {
 
     @Getter
     @Setter
+    boolean isDefault = false;
+
+    @Getter
+    @Setter
     @Column(length = 1000000)
     String content;
 

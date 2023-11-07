@@ -10,6 +10,9 @@
     var errorResenderTimeout = null;
     var resendCounter = 0;
 
+    var sentRequests = {};
+    var resendCounter = 0;
+
     if (genTime != null) {
         genTime = genTime.value;
 
@@ -35,6 +38,160 @@
         timeouts[name] = setTimeout(() =>{func(); timeouts[name] = null;}, time);
     };
 
+    /**
+     *  Sends a request and makes sure it goes through (if not displays error and tries again)
+     */
+    function handleRequest(id, request, handler) {
+
+        let requestData = {
+            id: id,
+            request: request,
+            handler: handler,
+            status: "wait",
+            promise: fetch(request).then((resp) => {
+
+                if (resp.ok)  {
+                    requestData.status = "success";
+                    resendCounter = 0;
+                    handler(resp);
+                } else {
+                    requestData.status = "error";
+                    resendCounter++;
+
+                    console.error("Błąd żądania");
+                    console.log(resp);
+                }
+
+                // resend errors
+                if (errorResenderTimeout != null) {
+                    clearTimeout(errorResenderTimeout);
+                }
+
+                errorResenderTimeout = setTimeout(resendErrors, 1000 * resendCounter);
+                updateStatusIndicator();
+            })
+        }
+
+        sentRequests[id] = requestData;
+        updateStatusIndicator();
+    }
+
+    
+    function invokeResendErrors() {
+        if (errorResenderTimeout != null) {
+            clearTimeout(errorResenderTimeout);
+        }
+
+        resendCounter = 0;
+        resendErrors();
+    }
+
+    function resendErrors() {
+
+        let errorsList = [];
+        for (let requestId in sentRequests) {
+            let requestData = sentRequests[requestId];
+
+            if (requestData != null && requestData.status == "error") {
+                errorsList.push(requestData)
+            }
+        }
+
+        if (errorsList.length > 0) {
+
+            for (let requestData of errorsList) {
+                handleRequest(requestData.id, new Request(requestData.request), requestData.handler);
+            }
+        }
+        updateStatusIndicator();
+    }
+
+    // function invokeResendErrors() {
+    //     if (errorResenderTimeout != null) {
+    //         clearTimeout(errorResenderTimeout);
+    //     }
+
+    //     let errorOverlay = document.getElementById("save-error-overlay");
+
+    //     if (errorOverlay == null) {
+    //         errorOverlay = document.createElement("div");
+    //         errorOverlay.id = "save-error-overlay";
+    //         errorOverlay.innerText = "Błąd zapisu. Poczekaj chwilę...";
+    //         document.body.append(errorOverlay);
+    //     }
+
+    //     if (fieldErrorsSet.size > 0) {
+    //         errorOverlay.style.display = "block";
+
+    //         errorResenderTimeout = setTimeout(async () =>  {
+    //             resendCounter++;
+    //             console.log("Error resend counter: " + resendCounter);
+
+    //             for (let errorInput of fieldErrorsSet) {
+    //                 await updateFieldValue(errorInput);
+    //             }
+
+    //             invokeResendErrors();
+    //         }, 1000 * (resendCounter));
+    //     } else {
+    //         errorOverlay.style.display = "none";
+    //         resendCounter = 0;
+    //     }
+
+
+    // }
+
+    function updateStatusIndicator() {
+
+        let status = "success";
+        for (let requestId in sentRequests) {
+            let requestData = sentRequests[requestId];
+
+            if (requestData != null) {
+                if (requestData.status == "wait") {
+                    status = "wait";
+                } else if (requestData.status == "error") {
+                    status = "error";
+                    break;
+                }
+            }
+        }
+
+        let indicator = document.getElementById("status-indicator");
+
+        if (indicator == null) {
+            indicator = document.createElement("div");
+            indicator.id = "status-indicator";
+            document.body.append(indicator);
+        }
+
+        if (indicator != null) {
+            switch (status) {
+                case "success":
+                    indicator.classList.add("success");
+                    indicator.classList.remove("wait");
+                    indicator.classList.remove("error");
+                    break;
+                case "wait":
+                    indicator.classList.remove("success");
+                    indicator.classList.add("wait");
+                    indicator.classList.remove("error");
+                    break;
+                case "error":
+                    indicator.classList.remove("success");
+                    indicator.classList.remove("wait");
+                    indicator.classList.add("error");
+                    break;
+                default:
+                    indicator.classList.remove("success");
+                    indicator.classList.remove("wait");
+                    indicator.classList.remove("error");
+                    break;
+            } 
+        }
+    }
+
+
     function updateFieldValue(input) {
 
         let url = "values/" + docId + "/" + input.id + "?token=" + token;
@@ -44,58 +201,28 @@
             body: input.value,
         });
 
-        return fetch(request).then((resp) => {
-            if (resp.ok) {
-                showResultPopup("success-popup", "Zapisano zmianę");
-                input.classList.remove("save-fail");
-                fieldErrorsSet.delete(input);
-                resendCounter = 0;
-            } else {
-                console.error("Błąd zapisu");
-                console.log(resp);
 
-                input.classList.add("save-fail");
-                fieldErrorsSet.add(input);
-            }
-            invokeResendErrors();
-        });
+        handleRequest(input.id, request, (resp) => {if (resp.ok) input.classList.remove("save-fail"); else input.classList.add("save-fail");});
+
+
+        // return fetch(request).then((resp) => {
+        //     if (resp.ok) {
+        //         showResultPopup("success-popup", "Zapisano zmianę");
+        //         input.classList.remove("save-fail");
+        //         fieldErrorsSet.delete(input);
+        //         resendCounter = 0;
+        //     } else {
+        //         console.error("Błąd zapisu");
+        //         console.log(resp);
+
+        //         input.classList.add("save-fail");
+        //         fieldErrorsSet.add(input);
+        //     }
+        //     invokeResendErrors();
+        // });
 
     };
 
-    function invokeResendErrors() {
-        if (errorResenderTimeout != null) {
-            clearTimeout(errorResenderTimeout);
-        }
-
-        let errorOverlay = document.getElementById("save-error-overlay");
-
-        if (errorOverlay == null) {
-            errorOverlay = document.createElement("div");
-            errorOverlay.id = "save-error-overlay";
-            errorOverlay.innerText = "Błąd zapisu. Poczekaj chwilę...";
-            document.body.append(errorOverlay);
-        }
-
-        if (fieldErrorsSet.size > 0) {
-            errorOverlay.style.display = "block";
-
-            errorResenderTimeout = setTimeout(async () =>  {
-                resendCounter++;
-                console.log("Error resend counter: " + resendCounter);
-
-                for (let errorInput of fieldErrorsSet) {
-                    await updateFieldValue(errorInput);
-                }
-
-                invokeResendErrors();
-            }, 1000 * (resendCounter));
-        } else {
-            errorOverlay.style.display = "none";
-            resendCounter = 0;
-        }
-
-
-    }
 
     function fieldInput(event) {
         resetTimeout(event.target.getAttribute("name"), () => updateFieldValue(event.target), 1500)
@@ -150,4 +277,23 @@
     document.body.addEventListener("load", (event) => {
         
     });
+
+
+    function preventPageClosing(event) {
+
+        for (let requestId in sentRequests) {
+            let requestData = sentRequests[requestId];
+
+            if (requestData != null && (requestData.status == "wait" || requestData.status == "error")) {
+                event.preventDefault();
+                event.returnValue = "Zmiany nie zostały zapisane, czy na pewno chcesz wyjść?";
+                break;
+            }
+        }
+
+
+
+    }
+
+    document.body.onbeforeunload = preventPageClosing;
 </script>
