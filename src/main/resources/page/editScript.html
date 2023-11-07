@@ -175,10 +175,18 @@
         if (indicator == null) {
             indicator = document.createElement("div");
             indicator.id = "status-indicator";
+
+            let cb = document.createElement("button");
+            cb.innerHTML = "&#215;";
+            cb.onclick = () => {indicator.classList.add("closed");};
+            indicator.appendChild(cb);
+
             document.body.append(indicator);
         }
 
         if (indicator != null) {
+            indicator.classList.remove("closed");
+
             switch (status) {
                 case "success":
                     indicator.classList.add("success");
