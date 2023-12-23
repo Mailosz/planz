@@ -12,12 +12,15 @@ import java.time.temporal.TemporalAmount;
 import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.annotation.PostConstruct;
 import pl.mo.planz.controllers.Controller;
 import pl.mo.planz.model.DocumentModel;
 import pl.mo.planz.model.IdentityModel;
@@ -53,36 +56,61 @@ public class DataLoader {
         this.controller = controller;
         this.docRepository = docRepo;
         this.listRepository = listRepository;
+    }
+
+    @PostConstruct
+    public void postConstruct() {
         LoadData();
     }
 
+
     private void LoadData() {
 
-        var list = templateRepository.findAll();
-        if (list.size() > 0) {
+        if (templateRepository.count() > 0 || docRepository.count() > 0) {
             System.out.println("Niepusta baza, skipped");
             return;
         }
 
-        ProfileModel edtProfile = new ProfileModel();
-        //edtProfile.setId(UUID.fromString("f36ed828-f7c1-40ec-9bf5-6adf69646f3a"));
-        edtProfile.setName("edit");
-        profileRepository.save(edtProfile);
+        
+        ProfileModel edtProfile;
+        ProfileModel admProfile;
+        ProfileModel viewProfile;
+        
+        Optional<ProfileModel> edtOpt =  profileRepository.findByName("edit");
+        if (edtOpt.isPresent()) {
+            edtProfile = edtOpt.get();
+        } else {
+            edtProfile = new ProfileModel();
+            //edtProfile.setId(UUID.fromString("f36ed828-f7c1-40ec-9bf5-6adf69646f3a"));
+            edtProfile.setName("edit");
+            profileRepository.save(edtProfile);
+        }
 
-        ProfileModel admProfile = new ProfileModel();
-        //admProfile.setId(UUID.fromString("a91aaae3-7a4d-4c7c-b658-3846268e7df9"));
-        admProfile.setName("admin");
-        profileRepository.save(admProfile);
+        Optional<ProfileModel> admOpt =  profileRepository.findByName("admin");
+        if (admOpt.isPresent()) {
+            admProfile = admOpt.get();
+        } else {
+            admProfile = new ProfileModel();
+            //admProfile.setId(UUID.fromString("a91aaae3-7a4d-4c7c-b658-3846268e7df9"));
+            admProfile.setName("admin");
+            profileRepository.save(admProfile);
+        }
 
-        ProfileModel viewProfile = new ProfileModel();
-        //tstProfile.setId(UUID.fromString("90d48d10-8b00-410b-938e-25c5d3f9c6a7"));
-        viewProfile.setName("view");
-        profileRepository.save(viewProfile);
+        Optional<ProfileModel> viewOpt =  profileRepository.findByName("view");
+        if (viewOpt.isPresent()) {
+            viewProfile = viewOpt.get();
+        } else {
+            viewProfile = new ProfileModel();
+            //tstProfile.setId(UUID.fromString("90d48d10-8b00-410b-938e-25c5d3f9c6a7"));
+            viewProfile.setName("view");
+            profileRepository.save(viewProfile);
+        }
 
 
         
         IdentityModel publicIdentity = new IdentityModel();
         //publicIdentity.setId(UUID.fromString("bc463ce2-5528-4b15-b93f-2d6f932bf3c4"));
+        publicIdentity.setProfiles(new HashSet<ProfileModel>());
         publicIdentity.getProfiles().add(viewProfile);
         identityRepository.save(publicIdentity);
 
@@ -95,6 +123,7 @@ public class DataLoader {
         IdentityModel testIdentity = new IdentityModel();
         //testIdentity.setId(UUID.fromString("f310f0d9-68c8-45eb-a9be-bd0cc20665f6"));
         testIdentity.setProfiles(new HashSet<ProfileModel>());
+        testIdentity.setProfiles(new HashSet<ProfileModel>());
         testIdentity.getProfiles().add(edtProfile);
         identityRepository.save(testIdentity);
 
@@ -106,6 +135,7 @@ public class DataLoader {
 
         IdentityModel admIdentity = new IdentityModel();
         //admIdentity.setId(UUID.fromString("41a50ee8-4e49-4569-ab62-de4a7f2e3346"));
+        admIdentity.setProfiles(new HashSet<ProfileModel>());
         admIdentity.setProfiles(new HashSet<ProfileModel>());
         admIdentity.getProfiles().add(admProfile);
         identityRepository.save(admIdentity);

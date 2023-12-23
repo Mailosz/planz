@@ -1,6 +1,7 @@
 body {
     font-family: sans-serif;
     font-size: 12pt;
+    padding-bottom: 50vh;
 }
 
 * {
@@ -206,7 +207,8 @@ td {
 
     .top-panel,
     #prev-button,
-    #next-button {
+    #next-button,
+    .goto-current-week {
         display: none;
     }
 }
@@ -258,4 +260,21 @@ td {
 
 .meeting-div {
     margin: 10px 0px;
+}
+
+.goto-current-week {
+    background: rgb(220, 220, 102);
+    padding: 10px;
+    border: 1px solid rgb(99, 92, 12);
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    position: fixed;
+    bottom: 10px;
+    left: 50%;
+    max-width: calc(100vw - 50px);
+    transform: translateX(-50%);
+    text-align: center;
+}
+
+.goto-current-week::before {
+    content: "Przejdź do planu na aktualny tydzień";
 }

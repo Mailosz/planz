@@ -13,7 +13,7 @@ import pl.mo.planz.model.TemplateModel;
 public interface FieldRepository extends JpaRepository<TemplateFieldModel, UUID> {
     
     @Modifying
-    @Query("delete from TemplateFieldModel tm where tm.template is null")
+    @Query("delete from TemplateFieldModel tmf where tmf.template is null")
     void deleteAllOrphanedFields();
 
 }

@@ -20,7 +20,7 @@ public class DocumentGenerator {
     @Transactional
     public static void removeOldDocuments(DocumentRepository docRepo, FieldValueRepository fvRepo, FieldValueHistoryRepository histRepo) {
 
-        LocalDate minimumDate = LocalDate.now().minusMonths(6);
+        LocalDate minimumDate = LocalDate.now().minusMonths(12);
 
         List<DocumentModel> docs = docRepo.findAll();
 
@@ -59,7 +59,7 @@ public class DocumentGenerator {
     public static void generateDocuments(DocumentRepository docRepo, TemplateRepository templateRepo) {
         int dayOfWeek = LocalDate.now().getDayOfWeek().getValue() - 1;
         LocalDate weekStart = LocalDate.now().minusDays(dayOfWeek);
-        List<LocalDate> weeks = weekStart.datesUntil(weekStart.plusMonths(3), Period.ofWeeks(1)).collect(Collectors.toList());
+        List<LocalDate> weeks = weekStart.datesUntil(weekStart.plusMonths(6), Period.ofWeeks(1)).collect(Collectors.toList());
 
         if (weeks.size() > 0) {
             //choosing template

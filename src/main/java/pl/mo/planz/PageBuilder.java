@@ -8,6 +8,7 @@ import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.HashSet;
@@ -96,6 +97,12 @@ public class PageBuilder {
             className = "edit-mode";
         } else {
             className = "show-mode";
+
+            // go to current week
+            var now = LocalDate.now();
+            if (now.isBefore(doc.getWeek()) || now.isAfter(doc.getWeek().plusWeeks(1))) {
+                content += "<a href=\".?token=" + token + "\" class=\"goto-current-week\"></a>";
+            }
         }
 
         content += "<div id=\"doc-container\" class=\"page " + className +"\">";

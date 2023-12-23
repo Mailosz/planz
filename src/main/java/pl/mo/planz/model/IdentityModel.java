@@ -3,6 +3,7 @@ package pl.mo.planz.model;
 import java.util.Set;
 import java.util.UUID;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -24,6 +25,7 @@ public class IdentityModel {
 
     @Getter
     @Setter
+    @Column(unique = true)
     String name;
 
     @Getter

@@ -3,6 +3,7 @@ package pl.mo.planz.model;
 import java.util.Set;
 import java.util.UUID;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -21,6 +22,7 @@ public class ProfileModel {
 
     @Getter
     @Setter
+    @Column(unique = true)
     String name;
 
     // @ManyToMany

@@ -93,6 +93,7 @@ public class Controller {
     @Autowired
     FieldValueHistoryRepository historyRepository;
 
+    @Transactional
     public void parseTemplateAndSave(String template, TemplateModel tm) throws TemplateParsingException {
         TemplateParser tp = new TemplateParser(template);
         template = tp.parse();
@@ -135,7 +136,7 @@ public class Controller {
                 if (opt.isPresent()) {
                     tfm.setEditProfile(opt.get());
                 } else {
-                    throw new TemplateParsingException("No profile");
+                    throw new TemplateParsingException("No profile: " + field.getEdit());
                 }
             } else {
                 tfm.setEditProfile(null);
@@ -146,7 +147,7 @@ public class Controller {
                 if (opt.isPresent()) {
                     tfm.setDatalist(opt.get());
                 } else {
-                    throw new TemplateParsingException("No list");
+                    throw new TemplateParsingException("No list: " + field.getList());
                 }
             } else {
                 tfm.setDatalist(null);
@@ -156,7 +157,12 @@ public class Controller {
         }
 
         tm.setFields(newFields);
+        try {
         fieldRepository.deleteAllOrphanedFields();
+        } catch (Exception ex) {
+            System.out.println("Field orphan removal failed:");
+            ex.printStackTrace();
+        }
         
         // for (var oldField : oldFields) {
         //     try {
