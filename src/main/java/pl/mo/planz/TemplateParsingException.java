@@ -11,6 +11,7 @@ public class TemplateParsingException extends Exception {
     }
 
     public TemplateParsingException(String desc) {
+        super(desc);
         this.desc = desc;
     }
 }

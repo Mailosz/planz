@@ -1,9 +1,9 @@
 
-<!-- Plan pełny -->
+<!-- Plan Obsługa -->
 <div class="plan">
-    <div class="week-header flex-row">Plan zebrań w tygodniu od @name=tyg-od-tytul|type=auto|value=tydzien-od@</div>
-    <div class="cleaning-duty"><span>Dyżur sprzątania sali w tygodniu od @name=tyg-od-sprz|type=auto|value=tydzien-od@ -&nbsp;</span><span>@name=nr-grupy|list=grupy|edit=edit@</span></div>
-    <div class="thursday-header flex-row">@name=czwartek-dzien|edit=admin|value=CZWARTEK@&ensp;|&ensp;@name=czwartek-data|type=auto|value=czwartek@</div>
+    <div class="week-header flex-row">Plan zebrań w tygodniu od @type=auto|value=tydzien-od@</div>
+    <div class="cleaning-duty"><span>Dyżur sprzątania sali w tygodniu od @type=auto|value=tydzien-od@ -&nbsp;</span><span>@name=nr-grupy|list=grupy|edit=edit@</span></div>
+    <div class="thursday-header flex-row">@name=czwartek-dzien|edit=admin|value=WTOREK@&ensp;|&ensp;@type=auto|value=wtorek@</div>
     <div class="meeting-div">
         <table class="meeting-table">
             <tr>
@@ -69,16 +69,6 @@
                 <td class="person-col">@name=czw-pokaz3-ucz2|list=wszyscy|edit=edit@</td>
             </tr>
             <tr>
-                <td class="duration-col" rowspan="2">@czw-pokaz4-time|edit=edit@</td>
-                <td class="subject-col" rowspan="2"><div class="flex-row">@czw-pokaz4-nazwa|edit=edit@</div></td>
-                <td class="label-col">@czw-pokaz4-lbl1|edit=edit@</td>
-                <td class="person-col">@name=czw-pokaz4-ucz1|list=wszyscy|edit=edit@</td>
-            </tr>
-            <tr>
-                <td class="label-col">@czw-pokaz4-lbl2|edit=edit@</td>
-                <td class="person-col">@name=czw-pokaz4-ucz2|list=wszyscy|edit=edit@</td>
-            </tr>
-            <tr>
                 <td class="lifestyle-header"></td>
                 <td class="lifestyle-header">Chrześcijański tryb życia</td>
             </tr>
@@ -95,14 +85,10 @@
                 <td class="person-col">@name=tryb-pkt2-prow|list=bracia|edit=edit@</td>
             </tr>
             <tr>
-                <td class="duration-col" rowspan="2">@name=czw-stud-czas|edit=admin|value=30 min@</td>
-                <td class="subject-col" rowspan="2"><div class="flex-row">@name=czw-stud-temat|edit=admin|value=Zborowe studium Biblii@</div></td>
-                <td class="label-col">@name=czw-stud-prow-lbl|edit=admin|value=Prowadzący:@</td>
+                <td class="duration-col">@name=czw-stud-czas|edit=admin|value=30 min@</td>
+                <td class="subject-col"><div class="flex-row">@name=czw-stud-temat|edit=edit|value=Przemówienie@</div></td>
+                <td class="label-col">@name=czw-stud-prow-lbl|edit=admin@</td>
                 <td class="person-col">@name=czw-stud-prow|list=bracia|edit=edit@</td>
-            </tr>
-            <tr>
-                <td class="label-col">@name=czw-stud-lektor-lbl|edit=admin|value=Lektor:@</td>
-                <td class="person-col">@name=czw-stud-lektor|list=bracia|edit=edit@</td>
             </tr>
             <tr>
                 <td class="duration-col">@name=czw-zebr-pods-czas|edit=admin|value=3 min@</td>
@@ -129,7 +115,7 @@
             <td><div class="flex-row"><span class="inline-label">Niebieski: </span>@name=czw-mikrofon-2|list=bracia|edit=edit@</div></td>
         </tr>
     </table>
-    <div class="sunday-header flex-row">@name=niedziela-dzien|edit=admin|value=NIEDZIELA@&ensp;|&ensp;@name=niedziela-data|type=auto|value=niedziela@</div>
+    <div class="sunday-header flex-row">@name=niedziela-dzien|edit=admin|value=NIEDZIELA@&ensp;|&ensp;@type=auto|value=niedziela@</div>
     <div class="meeting-div">
         <table class="meeting-table">
             <tr>
@@ -153,14 +139,16 @@
                 <td class="study-header">Studium Strażnicy</td>
             </tr>
             <tr>
-                <td class="duration-col" rowspan="2">@name=niedz-studium-czas|edit=admin|value=60 min@</td>
-                <td class="subject-col" rowspan="2"><div class="flex-row">@niedz-studium-temat|edit=edit@</div></td>
+                <td class="duration-col">@name=niedz-studium-czas|edit=admin|value=30 min@</td>
+                <td class="subject-col"><div class="flex-row">@niedz-studium-temat|edit=edit@</div></td>
                 <td class="label-col">@name=niedz-studium-prow-lbl|edit=admin|value=Prowadzący:@</td>
                 <td class="person-col">@name=niedz-studium-prow|list=bracia|edit=edit@</td>
             </tr>
             <tr>
-                <td class="label-col">@name=niedz-studium-lektor-lbl|edit=admin|value=Lektor:@</td>
-                <td class="person-col">@niedz-studium-lektor|list=bracia|edit=edit@</td>
+                <td class="duration-col">@name=niedz-wyklad-nadzorcy-czas|edit=admin|value=30 min@</td>
+                <td class="subject-col"><div class="flex-row">@niedz-wyklad-nadzorcy-temat|edit=edit@</div></td>
+                <td class="label-col">@name=niedz-wyklad-nadzorcy-lbl|edit=admin@</td>
+                <td class="person-col">@niedz-wyklad-nadzorcy-mowca|list=bracia|edit=edit@</td>
             </tr>
             <tr>
                 <td class="field-header"></td>

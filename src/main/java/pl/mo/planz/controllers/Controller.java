@@ -30,6 +30,7 @@ import pl.mo.planz.repositories.IdentityRepository;
 import pl.mo.planz.repositories.ProfileRepository;
 import pl.mo.planz.repositories.TemplateRepository;
 import pl.mo.planz.repositories.ValueListRepository;
+import pl.mo.planz.services.IdentityService;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -93,202 +94,16 @@ public class Controller {
     @Autowired
     FieldValueHistoryRepository historyRepository;
 
-    @Transactional
-    public void parseTemplateAndSave(String template, TemplateModel tm) throws TemplateParsingException {
-        TemplateParser tp = new TemplateParser(template);
-        template = tp.parse();
-        
-        tm.setContent(template);
-
-        List<TemplateFieldModel> oldFields = tm.getFields();
-        if (oldFields != null) {
-            for (var oldField : oldFields) {
-                oldField.setTemplate(null);
-            }
-        }
-
-        if (oldFields == null) oldFields = new ArrayList<>();
-        List<TemplateFieldDTO> foundFields = tp.getFields();
-        List<TemplateFieldModel> newFields = new ArrayList<>(foundFields.size());
-        for (var field : foundFields) {
-            TemplateFieldModel tfm;
-            if (field.getName() != null) {
-                Optional<TemplateFieldModel> oldOpt = oldFields.stream().filter((f) -> field.getName().equals(f.getName())).findFirst();
-                if (oldOpt.isPresent()) {
-                    tfm = oldOpt.get();
-                    oldFields.remove(oldOpt.get());
-                } else {
-                    tfm = new TemplateFieldModel();
-                }
-            } else {
-                tfm = new TemplateFieldModel();
-            }
-
-            tfm.setTemplate(tm);
-            tfm.setName(field.getName());
-            tfm.setType(Optional.ofNullable(field.getType()).orElse(FieldType.TEXT));
-            tfm.setPos(field.getPos());
-            tfm.setDefaultValue(Optional.ofNullable(field.getDefaultValue()).orElse(""));
-            tfm.setPublic(Optional.ofNullable(field.getIsPublic()).orElse(false));
-
-            if (field.getEdit() != null) {
-                var opt = profileRepository.findByName(field.getEdit());
-                if (opt.isPresent()) {
-                    tfm.setEditProfile(opt.get());
-                } else {
-                    throw new TemplateParsingException("No profile: " + field.getEdit());
-                }
-            } else {
-                tfm.setEditProfile(null);
-            }
-
-            if (field.getList() != null) {
-                var opt = listRepository.findByName(field.getList());
-                if (opt.isPresent()) {
-                    tfm.setDatalist(opt.get());
-                } else {
-                    throw new TemplateParsingException("No list: " + field.getList());
-                }
-            } else {
-                tfm.setDatalist(null);
-            }
-
-            newFields.add(tfm);
-        }
-
-        tm.setFields(newFields);
-        try {
-        fieldRepository.deleteAllOrphanedFields();
-        } catch (Exception ex) {
-            System.out.println("Field orphan removal failed:");
-            ex.printStackTrace();
-        }
-        
-        // for (var oldField : oldFields) {
-        //     try {
-        //         fieldRepository.delete(oldField);
-        //     } catch (Exception ex) {
-        //         System.out.println("Nie udało się usunąć pola o id " + oldField.getId());
-        //         ex.printStackTrace();
-        //     }
-        // }
-
-        templateRepository.save(tm);
-    }
-
-    @Transactional
-    @PostMapping(value="templates")
-    public String postTemplate(@RequestBody String template, @RequestParam(name = "token", required = false) String token, @RequestParam(name = "name", required = false) String name) {
-
-        //"security"
-        adminOrThrow(token);
-        
-        TemplateModel tm = new TemplateModel();
-        if (name != null) tm.setName(name);
-
-        try {
-            parseTemplateAndSave(template, tm);
-        } catch (TemplateParsingException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Parsing error: " + e.getDesc());
-        }
-        
-        return tm.getId().toString();
-    }
-
-    @Transactional
-    @PutMapping(value="templates/{uuid}")
-    public String updateTemplate(@PathVariable("uuid") UUID id, @RequestParam(name = "token", required = false) String token, @RequestParam(name = "name", required = false) String name, @RequestBody(required = false) String content) {
-        
-        //"security"
-        adminOrThrow(token);
-
-        var templateOpt = templateRepository.findById(id);
-
-        if (templateOpt.isPresent()) {
-            if (name != null) templateOpt.get().setName(name);
-            if (!StringUtils.isNullOrEmpty(content)) {
-                try {
-                    parseTemplateAndSave(content, templateOpt.get());
-                } catch (TemplateParsingException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                    throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Parsing error: " + e.getDesc());
-                }
-            }
-            return "ok";
-        } else {
-            return "no template";
-        }
-    }
-
-    @GetMapping(value="templates")
-    public List<UUID> getTemplates(@RequestParam(name = "token", required = false) String token) {
-        
-        //"security"
-        adminOrThrow(token);
-
-        List<UUID> ids =templateRepository.getAllIds();
-        
-        return ids;
-    }
-
-    @GetMapping(value="templates/{uuid}")
-    public String getTemplate(@PathVariable("uuid") UUID id, @RequestParam(name = "token", required = false) String token) {
-
-        //"security"
-        adminOrThrow(token);
-        
-        var templateOpt = templateRepository.findById(id);
-
-        if (templateOpt.isPresent()) {
-            return templateOpt.get().getContent();
-        } else {
-            return "no template";
-        }
-        
-    }
-
-    public void adminOrThrow(String token) {
-        requireProfileOrThrow(token, "admin");
-    }
-
-    private Set<String> getProfilesOrThrow(String token) {
-        var identity = identityRepository.findFromToken(token);
-        if (!identity.isPresent() || !identity.get().isActive()) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
-        }
-
-        return identity.get().getProfiles().stream().map((p) -> p.getName()).collect(Collectors.toSet());
-
-    }
+    @Autowired
+    IdentityService identityService;
 
 
-    private Set<String> getProfiles(Optional<IdentityModel> identity) {
-        if (identity.isPresent()) {
-            return identity.get().getProfiles().stream().map((p) -> p.getName()).collect(Collectors.toSet());
-        } else {
-            return new HashSet<String>();
-        }
-    }
-
-    public Set<String> requireProfileOrThrow(String token, String profile) {
-
-        Set<String> profiles = getProfilesOrThrow(token);
-
-        if (!profiles.contains(profile)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
-        }
-
-        return profiles;
-    }
 
     @PostMapping(value="documents")
     public UUID postDocument(@RequestBody DocumentDTO dto, @RequestParam(name = "token", required = false) String token) {
 
         //"security"
-        adminOrThrow(token);
+        identityService.adminOrThrow(token);
 
 
         DocumentModel doc = new DocumentModel();
@@ -305,7 +120,7 @@ public class Controller {
     public String changeIsPublic(@PathVariable("uuid") UUID id, @RequestParam(name = "token", required = false) String token, @PathVariable("public") Boolean isPublic) {
 
         //"security"
-        adminOrThrow(token);
+        identityService.adminOrThrow(token);
 
         var opt = documentRepository.findById(id);
 
@@ -321,7 +136,7 @@ public class Controller {
     public String changeIsEditable(@PathVariable("uuid") UUID id, @RequestParam(name = "token", required = false) String token, @PathVariable("editable") Boolean iseditable) {
 
         //"security"
-        adminOrThrow(token);
+        identityService.adminOrThrow(token);
 
         var opt = documentRepository.findById(id);
 
@@ -337,7 +152,7 @@ public class Controller {
     public String changeDocTemplate(@PathVariable("uuid") UUID docId, @RequestParam(name = "token", required = false) String token, @PathVariable("templateId") UUID templateId) {
 
         //"security"
-        adminOrThrow(token);
+        identityService.adminOrThrow(token);
 
         var docOpt = documentRepository.findById(docId);
         var temOpt = templateRepository.findById(templateId);
@@ -356,7 +171,7 @@ public class Controller {
     public String updateDocument(@PathVariable("uuid") UUID id, @RequestBody DocumentDTO dto, @RequestParam(name = "token", required = false) String token) {
 
         //"security"
-        adminOrThrow(token);
+        identityService.adminOrThrow(token);
 
         var opt = documentRepository.findById(id);
 
@@ -454,7 +269,7 @@ public class Controller {
 
     public String createView(DocumentModel doc, String token, String mode) {
 
-        Set<String> profiles = getProfilesOrThrow(token);
+        Set<String> profiles = identityService.getProfilesOrThrow(token);
 
         boolean isAdmin = false;
         if (profiles.contains("admin")) {
@@ -556,7 +371,7 @@ public class Controller {
     public List<DocumentDTO> getDocuments(@RequestParam(name = "token", required = false) String token) {
 
         //"security"
-        adminOrThrow(token);
+        identityService.adminOrThrow(token);
 
         List<DocumentModel> models = documentRepository.findAll();
 
@@ -574,7 +389,7 @@ public class Controller {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     @ResponseStatus(code = HttpStatus.OK)
     public void update(@RequestParam("token") String token) {
-        adminOrThrow(token);
+        identityService.adminOrThrow(token);
 
         DocumentGenerator.removeOldDocuments(documentRepository, fieldValueRepository, historyRepository);
         DocumentGenerator.generateDocuments(documentRepository, templateRepository);
@@ -589,7 +404,7 @@ public class Controller {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     @ResponseStatus(code = HttpStatus.OK)
     public void updateDocumentContent(@PathVariable("docId") UUID docId, @RequestParam(name = "token", required = false) String token) {
-        adminOrThrow(token);
+        identityService.adminOrThrow(token);
 
         var docOpt = documentRepository.findById(docId);
 

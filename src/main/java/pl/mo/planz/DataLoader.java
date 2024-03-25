@@ -21,7 +21,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import pl.mo.planz.controllers.Controller;
+import pl.mo.planz.controllers.TemplateController;
 import pl.mo.planz.model.DocumentModel;
 import pl.mo.planz.model.IdentityModel;
 import pl.mo.planz.model.ProfileModel;
@@ -39,16 +41,17 @@ import pl.mo.planz.repositories.ValueListRepository;
 @Component
 public class DataLoader {
 
-    private TemplateRepository templateRepository;
-    private DocumentRepository docRepository;
-    private TokenRepository tokenRepository;
-    private IdentityRepository identityRepository;
-    private ProfileRepository profileRepository;
-    private ValueListRepository listRepository;
-    private Controller controller;
+    private final TemplateRepository templateRepository;
+    private final DocumentRepository docRepository;
+    private final TokenRepository tokenRepository;
+    private final IdentityRepository identityRepository;
+    private final ProfileRepository profileRepository;
+    private final ValueListRepository listRepository;
+    private final Controller controller;
+    private final TemplateController templateController;
 
     @Autowired
-    public DataLoader(TemplateRepository tr, TokenRepository tokenRepo, IdentityRepository ir, ProfileRepository pr, Controller controller, DocumentRepository docRepo, ValueListRepository listRepository) {
+    public DataLoader(TemplateRepository tr, TokenRepository tokenRepo, IdentityRepository ir, ProfileRepository pr, Controller controller, DocumentRepository docRepo, ValueListRepository listRepository, TemplateController templateController) {
         this.templateRepository = tr;
         this.tokenRepository = tokenRepo;
         this.identityRepository = ir;
@@ -56,6 +59,7 @@ public class DataLoader {
         this.controller = controller;
         this.docRepository = docRepo;
         this.listRepository = listRepository;
+        this.templateController = templateController;
     }
 
     @PostConstruct
@@ -216,7 +220,7 @@ public class DataLoader {
             TemplateModel templateModel = new TemplateModel();
             //templateModel.setId(uuid);
             templateModel.setName(name);
-            controller.parseTemplateAndSave(templateContent, templateModel);
+            templateController.parseTemplateAndSave(templateContent, templateModel);
 
             return templateModel;
 
