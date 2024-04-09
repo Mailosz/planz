@@ -5,8 +5,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.websocket.server.PathParam;
 import pl.mo.planz.DocumentGenerator;
-import pl.mo.planz.PageBuilder;
 import pl.mo.planz.StringUtils;
 import pl.mo.planz.TemplateParser;
 import pl.mo.planz.TemplateParsingException;
@@ -19,6 +19,7 @@ import pl.mo.planz.model.FieldType;
 import pl.mo.planz.model.FieldValueHistoryModel;
 import pl.mo.planz.model.FieldValueModel;
 import pl.mo.planz.model.IdentityModel;
+import pl.mo.planz.model.SeriesModel;
 import pl.mo.planz.model.TemplateFieldModel;
 import pl.mo.planz.model.TemplateModel;
 import pl.mo.planz.model.ValueListModel;
@@ -28,9 +29,11 @@ import pl.mo.planz.repositories.FieldValueHistoryRepository;
 import pl.mo.planz.repositories.FieldValueRepository;
 import pl.mo.planz.repositories.IdentityRepository;
 import pl.mo.planz.repositories.ProfileRepository;
+import pl.mo.planz.repositories.SeriesRepository;
 import pl.mo.planz.repositories.TemplateRepository;
 import pl.mo.planz.repositories.ValueListRepository;
 import pl.mo.planz.services.IdentityService;
+import pl.mo.planz.view.PageBuilder;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -97,94 +100,26 @@ public class Controller {
     @Autowired
     IdentityService identityService;
 
+    @Autowired
+    SeriesRepository seriesRepository;    
+
+    @Autowired
+    PageBuilder pageBuilder;
 
 
-    @PostMapping(value="documents")
-    public UUID postDocument(@RequestBody DocumentDTO dto, @RequestParam(name = "token", required = false) String token) {
 
-        //"security"
+    @GetMapping(value="/create/{seriesId}")
+    public String createDocumentForSeries(@RequestParam(name = "token", required = false) String token, @PathVariable("seriesId") UUID seriesId) {
+
+        Optional<SeriesModel> opt = seriesRepository.findById(seriesId);
+
+        if (!opt.isPresent()) throw new ResponseStatusException(HttpStatusCode.valueOf(404), "No series");
+
         identityService.adminOrThrow(token);
 
-
-        DocumentModel doc = new DocumentModel();
-
-        doc.setWeek(dto.getWeek());
-        doc.setTemplate(templateRepository.getReferenceById(dto.getTemplateId()));
-
-        documentRepository.save(doc);
-        
-        return doc.getId();
+        return pageBuilder.buildCreatePage(opt.get(), token);
     }
 
-    @GetMapping(value="documents/{uuid}/change/public/{public}")
-    public String changeIsPublic(@PathVariable("uuid") UUID id, @RequestParam(name = "token", required = false) String token, @PathVariable("public") Boolean isPublic) {
-
-        //"security"
-        identityService.adminOrThrow(token);
-
-        var opt = documentRepository.findById(id);
-
-        if (opt.isPresent()) {
-            opt.get().setPublic(Optional.of(isPublic).get());
-            documentRepository.save(opt.get());
-        }
-
-        return Boolean.toString(opt.get().isPublic());
-    }
-
-    @GetMapping(value="documents/{uuid}/change/editable/{editable}")
-    public String changeIsEditable(@PathVariable("uuid") UUID id, @RequestParam(name = "token", required = false) String token, @PathVariable("editable") Boolean iseditable) {
-
-        //"security"
-        identityService.adminOrThrow(token);
-
-        var opt = documentRepository.findById(id);
-
-        if (opt.isPresent()) {
-            opt.get().setEditable(Optional.of(iseditable).get());
-            documentRepository.save(opt.get());
-        }
-
-        return Boolean.toString(opt.get().isEditable());
-    }
-
-    @GetMapping(value="documents/{uuid}/change/template/{templateId}")
-    public String changeDocTemplate(@PathVariable("uuid") UUID docId, @RequestParam(name = "token", required = false) String token, @PathVariable("templateId") UUID templateId) {
-
-        //"security"
-        identityService.adminOrThrow(token);
-
-        var docOpt = documentRepository.findById(docId);
-        var temOpt = templateRepository.findById(templateId);
-
-        if (docOpt.isPresent() && temOpt.isPresent()) {
-            docOpt.get().setTemplate(temOpt.get());
-            docOpt.get().setGeneratedContent(null);
-            documentRepository.save(docOpt.get());
-            return "true";
-        } else {
-            return "false";
-        }
-    }
-
-    @PostMapping(value="documents/{uuid}")
-    public String updateDocument(@PathVariable("uuid") UUID id, @RequestBody DocumentDTO dto, @RequestParam(name = "token", required = false) String token) {
-
-        //"security"
-        identityService.adminOrThrow(token);
-
-        var opt = documentRepository.findById(id);
-
-        if (opt.isPresent()) {
-            var model = opt.get();
-            model.setTemplate(templateRepository.getReferenceById(dto.getTemplateId()));
-            model.setWeek(dto.getWeek());
-            documentRepository.save(model);
-            return "ok";
-        } else {
-            return "no template";
-        }
-    }
 
     @GetMapping(value="/")
     public String openCurrentDocument(@RequestParam(name = "token", required = false) String token, @RequestParam(name = "mode", required = false) String mode) {
@@ -300,34 +235,16 @@ public class Controller {
             }
         }
 
-        String next = null;
-        String prev = null;
-        if (isAdmin || isEdit) {
-            if (doc.getNext() != null) {
-                next = doc.getNext().getId().toString() + "?token=" + token;
-            }
 
-            if (doc.getPrev() != null) {
-                prev = doc.getPrev().getId().toString() + "?token=" + token;
-            }
-        } else {
-            if (doc.getNext() != null && doc.getNext().isPublic()) {
-                next = doc.getNext().getId().toString() + "?token=" + token;;
-            }
-
-            if (doc.getPrev() != null && doc.getPrev().isPublic()) {
-                prev = doc.getPrev().getId().toString() + "?token=" + token;;
-            }
-        }
 
         String content = "";
-        boolean changed = false;
+        boolean containsChanges = false;
         if (isAdmin || (isEdit && doc.isEditable())) {
             Map<String, FieldValueModel> valueMap = fieldValueRepository.getAllForDocumentId(doc.getId()).stream().filter((v) -> v.getValue() != null).collect(Collectors.toMap((fv) -> fv.getField().getName(), (fv) -> fv, (val1, val2) -> {return val2;}));
         
             var pair = PageBuilder.buildDocumentForEdit(doc, valueMap, profiles, token);
             content = pair.getFirst();
-            changed = pair.getSecond();
+            containsChanges = pair.getSecond();
         } else {
             if (doc.isPublic() || isEdit) {
 
@@ -344,7 +261,7 @@ public class Controller {
         }
 
 
-        return PageBuilder.buildPage(isAdmin, isEdit, prev, next, content, doc, token, templateRepository, changed);
+        return pageBuilder.buildPage(isAdmin, isEdit, doc, token, containsChanges, content);
     }
 
     /**
@@ -392,7 +309,7 @@ public class Controller {
         identityService.adminOrThrow(token);
 
         DocumentGenerator.removeOldDocuments(documentRepository, fieldValueRepository, historyRepository);
-        DocumentGenerator.generateDocuments(documentRepository, templateRepository);
+        DocumentGenerator.generateDocuments(documentRepository, templateRepository, seriesRepository);
 
     }
 

@@ -1,4 +1,4 @@
-package pl.mo.planz;
+package pl.mo.planz.view;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -18,12 +18,15 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 
+import pl.mo.planz.StringUtils;
 import pl.mo.planz.model.DocumentModel;
 import pl.mo.planz.model.FieldType;
 import pl.mo.planz.model.FieldValueModel;
+import pl.mo.planz.model.SeriesModel;
 import pl.mo.planz.model.TemplateFieldModel;
 import pl.mo.planz.model.TemplateModel;
 import pl.mo.planz.model.ValueListModel;
@@ -59,12 +62,13 @@ public class PageBuilder {
         
     }
 
-    public static String buildPage(boolean isAdmin, boolean isEdit, String prev, String next, String document, DocumentModel doc, String token, TemplateRepository templateRepository, boolean changed) {
-        
-        String content = htmlStart;
+    @Autowired
+    TemplateRepository templateRepository;
 
-        if (isAdmin) {
-            content += "<div id=\"top-panel\">";
+
+    private String buildAdminMenu(DocumentModel doc, boolean containsChanges) {
+
+        String content = "<div id=\"top-panel\">";
             content += "<label title=\"Udostępnij wszystkim\"><input type=\"checkbox\" id=\"showcheckbox\" class=\"switch\" " + (doc.isPublic()?"checked ":"") + "onchange=\"changePublic(event);\")>Pokaż</label>&emsp;";
             content += "<label title=\"Zezwól na edycję\"><input type=\"checkbox\" id=\"editcheckbox\" class=\"switch\" " + (doc.isEditable()?"checked ":"") + "onchange=\"changeEditable(event);\")>Edycja</label>&emsp;";
 
@@ -77,20 +81,81 @@ public class PageBuilder {
             content += "</select></label>&emsp;";
 
             content += "<button onclick='updateDocumentContent()'>Odśwież</button>";
-            if (changed) {
+            if (containsChanges) {
                 content += "<span id=\"doc-changed-label\">&ensp;Dokument zawiera niezapisane zmiany</span>";
             }
             content += "</div>";
             content += adminScript;
-        }
+        
+        return content;
+    }
 
+    private String buildArrows(String prev, String next) {
+
+        StringBuilder sb = new StringBuilder();
         if (prev != null) {
-            content += "<a id=\"prev-button\" href=\"" + prev + "\"><div class=\"central\">&#10094;</div></a>";
+            sb.append("<a id=\"prev-button\" href=\"" + prev + "\"><div class=\"central\">&#10094;</div></a>");;
         }
 
         if (next != null) {
-            content += "<a id=\"next-button\" href=\"" + next + "\"><div class=\"central\">&#10095;</div></a>";
+            sb.append("<a id=\"next-button\" href=\"" + next + "\"><div class=\"central\">&#10095;</div></a>");
+        } 
+        return sb.toString();
+    }
+
+
+    public  String buildCreatePage(SeriesModel series, String token) {
+        String content = htmlStart; 
+
+        String prev = null;
+        if (series.getLastDocument() != null) {
+            prev = "/"+series.getLastDocument().getId() + "?token=" + token;
         }
+
+        content += buildArrows(prev, null);
+
+        content += """
+                <div id=\"doc-container\" class=\"page\">
+                <button>Utwórz nowy dokument</button>
+                </div>
+                """;
+        content += htmlEnd;
+        return content;
+    }
+
+    public String buildPage(boolean isAdmin, boolean isEdit, DocumentModel doc, String token, boolean containsChanges, String content) {
+        
+        StringBuilder sb = new StringBuilder();
+        sb.append(htmlStart);
+
+        if (isAdmin) {
+            sb.append(buildAdminMenu(doc, containsChanges));
+        }
+
+        //arrows
+        String next = null;
+        String prev = null;
+        if (isAdmin || isEdit) {
+            if (doc.getNext() != null) {
+                next = doc.getNext().getId().toString() + "?token=" + token;
+            } else { // link to create page
+                next = "create/" + doc.getSeries().getId() + "?token=" + token;
+            }
+
+            if (doc.getPrev() != null) {
+                prev = doc.getPrev().getId().toString() + "?token=" + token;
+            }
+        } else {
+            if (doc.getNext() != null && doc.getNext().isPublic()) {
+                next = doc.getNext().getId().toString() + "?token=" + token;;
+            }
+
+            if (doc.getPrev() != null && doc.getPrev().isPublic()) {
+                prev = doc.getPrev().getId().toString() + "?token=" + token;;
+            }
+        }
+
+        sb.append(buildArrows(prev, next));
 
         String className = null;
         if (isAdmin || isEdit) {
@@ -101,19 +166,20 @@ public class PageBuilder {
             // go to current week
             var now = LocalDate.now();
             if (now.isBefore(doc.getWeek()) || now.isAfter(doc.getWeek().plusWeeks(1))) {
-                content += "<a href=\".?token=" + token + "\" class=\"goto-current-week\"></a>";
+                sb.append("<a href=\".?token=" + token + "\" class=\"goto-current-week\"></a>");
             }
         }
 
-        content += "<div id=\"doc-container\" class=\"page " + className +"\">";
-        content += document;
-        content += "</div>";
+        sb.append("<div id=\"doc-container\" class=\"page " + className +"\">");
+        sb.append(content);
+        sb.append("</div>");
 
         if (isAdmin || isEdit) {
-            content += editScript;
+            sb.append(editScript);
         }
+        sb.append(htmlEnd);
 
-        return content;
+        return sb.toString();
     }
 
     public static Pair<String, Boolean> buildDocumentForEdit(DocumentModel docModel, Map<String, FieldValueModel> valueMap, Set<String> profiles, String token) {

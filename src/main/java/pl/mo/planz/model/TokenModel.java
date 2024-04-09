@@ -23,4 +23,8 @@ public class TokenModel {
     @Getter
     @Setter
     SeriesModel series;
+
+    @Getter
+    @Setter
+    boolean active = true;
 }

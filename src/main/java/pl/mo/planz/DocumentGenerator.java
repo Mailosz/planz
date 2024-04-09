@@ -8,10 +8,12 @@ import java.util.stream.Collectors;
 import org.springframework.transaction.annotation.Transactional;
 
 import pl.mo.planz.model.DocumentModel;
+import pl.mo.planz.model.SeriesModel;
 import pl.mo.planz.model.TemplateModel;
 import pl.mo.planz.repositories.DocumentRepository;
 import pl.mo.planz.repositories.FieldValueHistoryRepository;
 import pl.mo.planz.repositories.FieldValueRepository;
+import pl.mo.planz.repositories.SeriesRepository;
 import pl.mo.planz.repositories.TemplateRepository;
 
 public class DocumentGenerator {
@@ -56,25 +58,47 @@ public class DocumentGenerator {
 
     }
 
-    public static void generateDocuments(DocumentRepository docRepo, TemplateRepository templateRepo) {
+    public static void generateDocuments(DocumentRepository docRepo, TemplateRepository templateRepo, SeriesRepository seriesRepository) {
+
+        List<SeriesModel> series = seriesRepository.findAll();
+
+        for (SeriesModel seriesModel : series) {
+            generateDocumentsForSeries(docRepo, templateRepo, seriesModel);
+        }
+
+    }
+
+    /**
+     * Autogenerating documents
+     * @param docRepo
+     * @param templateRepo
+     * @param series
+     */
+    public static void generateDocumentsForSeries(DocumentRepository docRepo, TemplateRepository templateRepo, SeriesModel series) {
         int dayOfWeek = LocalDate.now().getDayOfWeek().getValue() - 1;
         LocalDate weekStart = LocalDate.now().minusDays(dayOfWeek);
         List<LocalDate> weeks = weekStart.datesUntil(weekStart.plusMonths(6), Period.ofWeeks(1)).collect(Collectors.toList());
 
         if (weeks.size() > 0) {
-            //choosing template
-            List<TemplateModel> allTemplates = templateRepo.findAll();
 
-            if (allTemplates.size() == 0) {
-                System.out.println("No template");
-                return;
-            }
+            TemplateModel defaultTemplate = series.getDefaultTemplate();
 
-            TemplateModel defaultTemplate = allTemplates.get(0);
-            for (var template : allTemplates) {
-                if (template.isDefault()) {
-                    defaultTemplate = template;
-                    break;
+            if (defaultTemplate == null) {
+
+                //choosing template
+                List<TemplateModel> allTemplates = templateRepo.findAll();
+
+                if (allTemplates.size() == 0) {
+                    System.out.println("No template");
+                    return;
+                }
+
+                defaultTemplate = allTemplates.get(0);
+                for (var template : allTemplates) {
+                    if (template.isDefault()) {
+                        defaultTemplate = template;
+                        break;
+                    }
                 }
             }
 
@@ -103,6 +127,7 @@ public class DocumentGenerator {
 
                     doc.setWeek(week);
                     doc.setTemplate(defaultTemplate);
+                    doc.setSeries(series);
 
                     doc.setPrev(previous);
                     if (previous != null) {
@@ -121,4 +146,5 @@ public class DocumentGenerator {
             };
         }
     }
+
 }

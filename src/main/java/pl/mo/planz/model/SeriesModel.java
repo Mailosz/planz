@@ -34,6 +34,16 @@ public class SeriesModel {
     @Setter
     DocumentModel currentDocument;
 
+    @ManyToOne
+    @Getter
+    @Setter
+    DocumentModel firstDocument;
+
+    @ManyToOne
+    @Getter
+    @Setter
+    DocumentModel lastDocument;
+
     @Getter
     @Setter
     @Convert(converter = PeriodToStringConverter.class)

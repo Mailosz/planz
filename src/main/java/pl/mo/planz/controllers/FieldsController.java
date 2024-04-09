@@ -5,7 +5,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import pl.mo.planz.PageBuilder;
 import pl.mo.planz.StringUtils;
 import pl.mo.planz.TemplateParser;
 import pl.mo.planz.TemplateParsingException;
@@ -30,6 +29,7 @@ import pl.mo.planz.repositories.IdentityRepository;
 import pl.mo.planz.repositories.ProfileRepository;
 import pl.mo.planz.repositories.TemplateRepository;
 import pl.mo.planz.repositories.ValueListRepository;
+import pl.mo.planz.view.PageBuilder;
 
 import java.time.Instant;
 import java.time.LocalDate;

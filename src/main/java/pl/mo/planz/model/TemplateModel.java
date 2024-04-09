@@ -33,6 +33,10 @@ public class TemplateModel {
 
     @Getter
     @Setter
+    boolean active = true;
+
+    @Getter
+    @Setter
     @Column(length = 1000000)
     String content;
 

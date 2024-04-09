@@ -18,10 +18,16 @@ public class MainErrorController implements ErrorController  {
         return "error";
     }
 
-//     @ExceptionHandler(value = {ResponseStatusException.class})
-//     @ResponseStatus(org.springframework.http.HttpStatus.BAD_REQUEST)
-//     @ResponseBody
-//     public String badRequest(final ResponseStatusException ex) {
-//         return "not ok";
-//     }
+    // @ExceptionHandler(value = {ResponseStatusException.class})
+    // @ResponseBody
+    // public String badRequest(final ResponseStatusException ex) {
+    //     return "not ok";
+    // }
+
+    // @ExceptionHandler(value = {ResponseStatusException.class})
+    // @ResponseStatus(org.springframework.http.HttpStatus.BAD_REQUEST)
+    // @ResponseBody
+    // public String badRequest(final ResponseStatusException ex) {
+    //     return "not ok";
+    // }
 }

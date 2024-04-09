@@ -41,6 +41,7 @@ import pl.mo.planz.repositories.SeriesRepository;
 import pl.mo.planz.repositories.TemplateRepository;
 import pl.mo.planz.repositories.TokenRepository;
 import pl.mo.planz.repositories.ValueListRepository;
+import pl.mo.planz.services.DocumentService;
 
 @RequiredArgsConstructor
 @Component
@@ -55,6 +56,7 @@ public class DataLoader {
     private final Controller controller;
     private final TemplateController templateController;
     private final SeriesRepository seriesRepository;
+    private final DocumentService documentService;
 
 
 
@@ -112,7 +114,7 @@ public class DataLoader {
         loadList(listRepository, "lists/grupy.txt", "grupy", UUID.fromString("f662628b-b759-48b5-a898-637cfa273062"));
 
         TemplateModel mainTemplate = loadTemplate(templateRepository, "templates/template.html", "Domyślny", UUID.fromString("5a69f438-f159-4299-8d6e-16792f45bf9e"));
-        loadTemplate(templateRepository, "templates/tylko-niedziela.html", "Tylko niedziela", UUID.fromString("86809da1-a02d-4050-90c4-90a849f4fbe3"));
+        TemplateModel tylkoNiedziela = loadTemplate(templateRepository, "templates/tylko-niedziela.html", "Tylko niedziela", UUID.fromString("86809da1-a02d-4050-90c4-90a849f4fbe3"));
         loadTemplate(templateRepository, "templates/tylko-w-tygodniu.html", "Tylko w tygodniu", UUID.fromString("fafb6f5d-8a2d-41d2-835f-bf6a4cf7efe1"));
 
         SeriesModel defaultSeries = new SeriesModel();
@@ -121,6 +123,13 @@ public class DataLoader {
         defaultSeries.setGenerationInterval(Period.ofWeeks(1));
         defaultSeries.setDefaultTemplate(mainTemplate);
         seriesRepository.save(defaultSeries);
+
+        SeriesModel secondSeries = new SeriesModel();
+        // defaultSeries.setId(UUID.fromString("fa451ce2-5528-4b15-b93f-2d6f932bf3c4"));
+        defaultSeries.setName("Second series");
+        defaultSeries.setGenerationInterval(Period.ofWeeks(2));
+        defaultSeries.setDefaultTemplate(tylkoNiedziela);
+        seriesRepository.save(secondSeries);
 
         
         IdentityModel publicIdentity = new IdentityModel();
@@ -163,42 +172,49 @@ public class DataLoader {
         admToken.setSeries(defaultSeries);
         tokenRepository.save(admToken);
 
+        documentService.createForSeries(defaultSeries);
+        documentService.createForSeries(secondSeries);
 
-        DocumentModel document1 = new DocumentModel();
-        //document1.setId(UUID.fromString("7e3ef958-0db6-4b5b-bc4e-fd4768a1ade2"));
-        document1.setTemplate(mainTemplate);
-        document1.setWeek(LocalDate.of(2023, Month.APRIL, 3));
-        docRepository.save(document1);
 
-        DocumentModel document2 = new DocumentModel();
-        //document2.setId(UUID.fromString("b956736d-0fd0-46b9-ae07-7561ddaa714b"));
-        document2.setTemplate(mainTemplate);
-        document2.setWeek(LocalDate.of(2023, Month.APRIL, 10));
-        docRepository.save(document2);
+        // DocumentModel document1 = new DocumentModel();
+        // //document1.setId(UUID.fromString("7e3ef958-0db6-4b5b-bc4e-fd4768a1ade2"));
+        // document1.setTemplate(mainTemplate);
+        // document1.setSeries(defaultSeries);
+        // document1.setWeek(LocalDate.of(2024, Month.APRIL, 1));
+        // docRepository.save(document1);
 
-        DocumentModel document3 = new DocumentModel();
-        //document3.setId(UUID.fromString("b7350128-84cb-43e4-bd4f-8d78abb95cde"));
-        document3.setTemplate(mainTemplate);
-        document3.setWeek(LocalDate.of(2023, Month.APRIL, 17));
-        docRepository.save(document3);
+        // DocumentModel document2 = new DocumentModel();
+        // //document2.setId(UUID.fromString("b956736d-0fd0-46b9-ae07-7561ddaa714b"));
+        // document2.setTemplate(mainTemplate);
+        // document1.setSeries(secondSeries);
+        // document2.setWeek(LocalDate.of(2024, Month.APRIL, 1));
+        // docRepository.save(document2);
 
-        DocumentModel document4 = new DocumentModel();
-        //document4.setId(UUID.fromString("49115c0b-ebeb-40c9-a232-0443886ea5d0"));
-        document4.setTemplate(mainTemplate);
-        document4.setWeek(LocalDate.of(2023, Month.APRIL, 24));
-        docRepository.save(document4);
 
-        document1.setNext(document2);
-        document2.setPrev(document1);
-        document2.setNext(document3);
-        document3.setPrev(document2);
-        document3.setNext(document4);
-        document4.setPrev(document3);
 
-        docRepository.save(document1);
-        docRepository.save(document2);
-        docRepository.save(document3);
-        docRepository.save(document4);
+        // DocumentModel document3 = new DocumentModel();
+        // //document3.setId(UUID.fromString("b7350128-84cb-43e4-bd4f-8d78abb95cde"));
+        // document3.setTemplate(mainTemplate);
+        // document3.setWeek(LocalDate.of(2024, Month.APRIL, 15));
+        // docRepository.save(document3);
+
+        // DocumentModel document4 = new DocumentModel();
+        // //document4.setId(UUID.fromString("49115c0b-ebeb-40c9-a232-0443886ea5d0"));
+        // document4.setTemplate(mainTemplate);
+        // document4.setWeek(LocalDate.of(2024, Month.APRIL, 22));
+        // docRepository.save(document4);
+
+        //document1.setNext(document2);
+        //document2.setPrev(document1);
+        // document2.setNext(document3);
+        // document3.setPrev(document2);
+        // document3.setNext(document4);
+        // document4.setPrev(document3);
+
+        // docRepository.save(document1);
+        // docRepository.save(document2);
+        // docRepository.save(document3);
+        // docRepository.save(document4);
 
     }
 
