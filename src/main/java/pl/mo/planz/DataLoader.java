@@ -5,8 +5,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.Month;
+import java.time.Period;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAmount;
 import java.time.temporal.TemporalUnit;
@@ -27,6 +29,7 @@ import pl.mo.planz.controllers.TemplateController;
 import pl.mo.planz.model.DocumentModel;
 import pl.mo.planz.model.IdentityModel;
 import pl.mo.planz.model.ProfileModel;
+import pl.mo.planz.model.SeriesModel;
 import pl.mo.planz.model.TemplateModel;
 import pl.mo.planz.model.TokenModel;
 import pl.mo.planz.model.ValueListItemModel;
@@ -34,10 +37,12 @@ import pl.mo.planz.model.ValueListModel;
 import pl.mo.planz.repositories.DocumentRepository;
 import pl.mo.planz.repositories.IdentityRepository;
 import pl.mo.planz.repositories.ProfileRepository;
+import pl.mo.planz.repositories.SeriesRepository;
 import pl.mo.planz.repositories.TemplateRepository;
 import pl.mo.planz.repositories.TokenRepository;
 import pl.mo.planz.repositories.ValueListRepository;
 
+@RequiredArgsConstructor
 @Component
 public class DataLoader {
 
@@ -49,18 +54,9 @@ public class DataLoader {
     private final ValueListRepository listRepository;
     private final Controller controller;
     private final TemplateController templateController;
+    private final SeriesRepository seriesRepository;
 
-    @Autowired
-    public DataLoader(TemplateRepository tr, TokenRepository tokenRepo, IdentityRepository ir, ProfileRepository pr, Controller controller, DocumentRepository docRepo, ValueListRepository listRepository, TemplateController templateController) {
-        this.templateRepository = tr;
-        this.tokenRepository = tokenRepo;
-        this.identityRepository = ir;
-        this.profileRepository = pr;
-        this.controller = controller;
-        this.docRepository = docRepo;
-        this.listRepository = listRepository;
-        this.templateController = templateController;
-    }
+
 
     @PostConstruct
     public void postConstruct() {
@@ -111,6 +107,21 @@ public class DataLoader {
         }
 
 
+        loadList(listRepository, "lists/bracia.txt", "bracia", UUID.fromString("c70f096b-2639-40a1-8607-a2d5db8797d3"));
+        loadList(listRepository, "lists/wszyscy.txt", "wszyscy", UUID.fromString("dce7a62d-3d5f-4c38-879a-c8abae8371a5"));
+        loadList(listRepository, "lists/grupy.txt", "grupy", UUID.fromString("f662628b-b759-48b5-a898-637cfa273062"));
+
+        TemplateModel mainTemplate = loadTemplate(templateRepository, "templates/template.html", "Domyślny", UUID.fromString("5a69f438-f159-4299-8d6e-16792f45bf9e"));
+        loadTemplate(templateRepository, "templates/tylko-niedziela.html", "Tylko niedziela", UUID.fromString("86809da1-a02d-4050-90c4-90a849f4fbe3"));
+        loadTemplate(templateRepository, "templates/tylko-w-tygodniu.html", "Tylko w tygodniu", UUID.fromString("fafb6f5d-8a2d-41d2-835f-bf6a4cf7efe1"));
+
+        SeriesModel defaultSeries = new SeriesModel();
+        // defaultSeries.setId(UUID.fromString("fa451ce2-5528-4b15-b93f-2d6f932bf3c4"));
+        defaultSeries.setName("Default series");
+        defaultSeries.setGenerationInterval(Period.ofWeeks(1));
+        defaultSeries.setDefaultTemplate(mainTemplate);
+        seriesRepository.save(defaultSeries);
+
         
         IdentityModel publicIdentity = new IdentityModel();
         //publicIdentity.setId(UUID.fromString("bc463ce2-5528-4b15-b93f-2d6f932bf3c4"));
@@ -121,6 +132,7 @@ public class DataLoader {
         TokenModel showToken = new TokenModel();
         showToken.setValue("show");
         showToken.setIdentity(publicIdentity);
+        showToken.setSeries(defaultSeries);
         tokenRepository.save(showToken);
 
 
@@ -134,6 +146,7 @@ public class DataLoader {
         TokenModel testToken = new TokenModel();
         testToken.setValue("test");
         testToken.setIdentity(testIdentity);
+        testToken.setSeries(defaultSeries);
         tokenRepository.save(testToken);
 
 
@@ -147,19 +160,8 @@ public class DataLoader {
         TokenModel admToken = new TokenModel();
         admToken.setValue("adm");
         admToken.setIdentity(admIdentity);
+        admToken.setSeries(defaultSeries);
         tokenRepository.save(admToken);
-
-
-
-
-        loadList(listRepository, "lists/bracia.txt", "bracia", UUID.fromString("c70f096b-2639-40a1-8607-a2d5db8797d3"));
-        loadList(listRepository, "lists/wszyscy.txt", "wszyscy", UUID.fromString("dce7a62d-3d5f-4c38-879a-c8abae8371a5"));
-        loadList(listRepository, "lists/grupy.txt", "grupy", UUID.fromString("f662628b-b759-48b5-a898-637cfa273062"));
-
-            
-        TemplateModel mainTemplate = loadTemplate(templateRepository, "templates/template.html", "Domyślny", UUID.fromString("5a69f438-f159-4299-8d6e-16792f45bf9e"));
-        loadTemplate(templateRepository, "templates/tylko-niedziela.html", "Tylko niedziela", UUID.fromString("86809da1-a02d-4050-90c4-90a849f4fbe3"));
-        loadTemplate(templateRepository, "templates/tylko-w-tygodniu.html", "Tylko w tygodniu", UUID.fromString("fafb6f5d-8a2d-41d2-835f-bf6a4cf7efe1"));
 
 
         DocumentModel document1 = new DocumentModel();

@@ -212,6 +212,8 @@ public class PageBuilder {
                 return getFieldAutoValue(docModel, value);
             case COPY:
                 return getFieldCopyValue(value, valueMap);
+            case HIDDEN:
+                return getStaticValue(field, docModel, valueMap);
             default:
                 return String.format("<input type=\"text\" id=\"%1$s\" name=\"%2$s\" %3$s class=\"user-editable-field\" value=\"%4$s\" oninput=\"fieldInput(event)\" onchange=\"fieldChange(event)\">", field.getId(), field.getName(), listname, StringUtils.escapeHTML(StringUtils.escapeQuotes(value)));
         }

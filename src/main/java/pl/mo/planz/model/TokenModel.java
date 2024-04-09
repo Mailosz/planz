@@ -2,6 +2,7 @@ package pl.mo.planz.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,4 +18,9 @@ public class TokenModel {
     @Getter
     @Setter
     IdentityModel identity;
+
+    @ManyToOne
+    @Getter
+    @Setter
+    SeriesModel series;
 }

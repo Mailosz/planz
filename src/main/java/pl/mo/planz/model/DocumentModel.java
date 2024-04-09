@@ -43,6 +43,11 @@ public class DocumentModel {
     @ManyToOne
     @Getter
     @Setter
+    SeriesModel board;
+
+    @ManyToOne
+    @Getter
+    @Setter
     TemplateModel showProfile;
 
     @OneToOne
