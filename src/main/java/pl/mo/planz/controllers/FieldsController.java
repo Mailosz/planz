@@ -243,37 +243,42 @@ public class FieldsController {
     }
 
 
-    @GetMapping(value="history/{valueId}")
-    public List<HistoryItemDTO> getHistory(@PathVariable("valueId") UUID valueId, @RequestParam("token") String token) {
+    @GetMapping(value="history/{docId}/{fieldId}")
+    public List<HistoryItemDTO> getHistory(@PathVariable("docId") UUID docId, @PathVariable("fieldId") UUID fieldId, @RequestParam("token") String token) {
 
         adminOrThrow(token);
 
-        List<FieldValueHistoryModel> items = historyRepository.getHistoryForField(valueId);
-
-        DateTimeFormatter timeFormattter = DateTimeFormatter.ofPattern("YYYY.MM.dd HH:mm:ss");
-
-        List<HistoryItemDTO> dtos = items.stream().map((item) -> {
-            HistoryItemDTO dto = new HistoryItemDTO();
-            dto.setValue(item.getValue());
-            dto.setEditor(item.getEditIdentity().getName());
-            dto.setTime(item.getEditTime().atZone(ZoneId.systemDefault()).format(timeFormattter));
-
-            return dto;
-        }).collect(Collectors.toList());
-
-        //adding when current value has been edited
-        var value = fieldValueRepository.findById(valueId);
+        var value = fieldValueRepository.findByDocAndField(docId, fieldId);
         if (value.isPresent()) {
+
+            //history
+            List<FieldValueHistoryModel> items = historyRepository.getHistoryForField(value.get().getId());
+
+            DateTimeFormatter timeFormattter = DateTimeFormatter.ofPattern("YYYY.MM.dd HH:mm:ss");
+    
+            List<HistoryItemDTO> dtos = items.stream().map((item) -> {
+                HistoryItemDTO dto = new HistoryItemDTO();
+                dto.setValue(item.getValue());
+                dto.setEditor(item.getEditIdentity().getName());
+                dto.setTime(item.getEditTime().atZone(ZoneId.systemDefault()).format(timeFormattter));
+    
+                return dto;
+            }).collect(Collectors.toList());
+
+            // add current value
             HistoryItemDTO currentValue = new HistoryItemDTO();
             currentValue.setValue(value.get().getValue());
             currentValue.setEditor(value.get().getEditIdentity().getName());
             currentValue.setTime(value.get().getEditTime().atZone(ZoneId.systemDefault()).format(timeFormattter));
 
-            dtos.add(currentValue);
-        }
-        
+            dtos.add(currentValue); 
 
-        return dtos;
+            return dtos;
+        } else {
+            return new ArrayList<>(); 
+        }
+
+
     }
 
 

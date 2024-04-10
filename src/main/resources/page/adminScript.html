@@ -149,7 +149,7 @@
                 ),
                 builder.tag("div").class("admin-popup-row").attr("style", "text-align: right;").children(
                     builder.tag("span").attr("style", "text-decoration: underline; color: darkblue; cursor: pointer;").innerText("Historia zmian").event("click", (event) => {
-                        let historyUrl = "history/" + valueId + "?token=" + token;
+                        let historyUrl = "history/" + docId + "/" + fieldId + "?token=" + token;
                         let request = new Request(historyUrl, {
                             method: "GET"
                         });
@@ -162,26 +162,33 @@
                             }
                         }).then((json) => {
 
-                            let table = builder.tag("table");
-                            table.children(
-                                    builder.tag("tr").children(
-                                        builder.tag("th").innerText("Wartość"),
-                                        builder.tag("th").innerText("Edytujący"),
-                                        builder.tag("th").innerText("Czas"),
-                                    )
-                                )
-                            for (let row of json) {
+                            
+                            if (Array.isArray(json) && json.length > 0) {
+                                let content = builder.tag("table");
                                 table.children(
-                                    builder.tag("tr").children(
-                                        builder.tag("td").innerText(row.value),
-                                        builder.tag("td").innerText(row.editor),
-                                        builder.tag("td").innerText(row.time),
+                                        builder.tag("tr").children(
+                                            builder.tag("th").innerText("Wartość"),
+                                            builder.tag("th").innerText("Edytujący"),
+                                            builder.tag("th").innerText("Czas"),
+                                        )
                                     )
-                                )
+                                for (let row of json) {
+                                    table.children(
+                                        builder.tag("tr").children(
+                                            builder.tag("td").innerText(row.value),
+                                            builder.tag("td").innerText(row.editor),
+                                            builder.tag("td").innerText(row.time),
+                                        )
+                                    )
+                                }
+                                popup = new Popup(table.getTag(), {});
+                                popup.show(null, "center center");
+                            } else {
+                                let content = builder.tag("span").innerText("Brak danych").getTag();
+                                popup.show(null, "center center");
                             }
 
-                            let popup = new Popup(table.getTag(), {});
-                            popup.show(null, "center center");
+
                         });
                     }).invoke((el) => {
                         if (valueId == null) {
