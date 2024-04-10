@@ -69,6 +69,9 @@ public class PageBuilder {
     private String buildAdminMenu(DocumentModel doc, boolean containsChanges) {
 
         String content = "<div id=\"top-panel\">";
+
+            content += "<button onclick=\"openAccessPopup('" + doc.getSeries().getId() + "');\">Zarządzaj dostępem</button>&emsp;";
+
             content += "<label title=\"Udostępnij wszystkim\"><input type=\"checkbox\" id=\"showcheckbox\" class=\"switch\" " + (doc.isPublic()?"checked ":"") + "onchange=\"changePublic(event);\")>Pokaż</label>&emsp;";
             content += "<label title=\"Zezwól na edycję\"><input type=\"checkbox\" id=\"editcheckbox\" class=\"switch\" " + (doc.isEditable()?"checked ":"") + "onchange=\"changeEditable(event);\")>Edycja</label>&emsp;";
 
