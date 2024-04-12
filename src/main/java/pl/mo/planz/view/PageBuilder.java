@@ -112,7 +112,7 @@ public class PageBuilder {
 
         String prev = null;
         if (series.getLastDocument() != null) {
-            prev = "/" + token + "/view/" + series.getLastDocument().getId();
+            prev = "/edit/" + token + "/" + series.getLastDocument().getId();
         }
 
         content += buildArrows(prev, null);
@@ -124,6 +124,10 @@ public class PageBuilder {
                 """;
         content += htmlEnd;
         return content;
+    }
+
+    private String getDocumentAddress(String token, DocumentModel doc) {
+        return token + "/" + doc.getId().toString();
     }
 
     public String buildPage(boolean isAdmin, boolean isEdit, DocumentModel doc, String token, boolean containsChanges, String content) {
@@ -140,21 +144,21 @@ public class PageBuilder {
         String prev = null;
         if (isAdmin || isEdit) {
             if (doc.getNext() != null) {
-                next = doc.getNext().getId().toString() + "?token=" + token;
+                next = getDocumentAddress(token, doc.getNext());
             } else { // link to create page
-                next = "create";
+                next = "/create/" + token;
             }
 
             if (doc.getPrev() != null) {
-                prev = doc.getPrev().getId().toString() + "?token=" + token;
+                prev = getDocumentAddress(token, doc.getPrev());
             }
         } else {
             if (doc.getNext() != null && doc.getNext().isPublic()) {
-                next = doc.getNext().getId().toString() + "?token=" + token;;
+                next = getDocumentAddress(token, doc.getNext());
             }
 
             if (doc.getPrev() != null && doc.getPrev().isPublic()) {
-                prev = doc.getPrev().getId().toString() + "?token=" + token;;
+                prev = getDocumentAddress(token, doc.getPrev());
             }
         }
 

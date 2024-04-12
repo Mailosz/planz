@@ -102,9 +102,9 @@ public class DataLoader {
         seriesRepository.save(defaultSeries);
 
         SeriesModel secondSeries = new SeriesModel();
-        defaultSeries.setName("Second series");
-        defaultSeries.setGenerationInterval(Period.ofWeeks(2));
-        defaultSeries.setDefaultTemplate(tylkoNiedziela);
+        secondSeries.setName("Second series");
+        secondSeries.setGenerationInterval(Period.ofWeeks(2));
+        secondSeries.setDefaultTemplate(tylkoNiedziela);
         seriesRepository.save(secondSeries);
 
         
@@ -116,9 +116,9 @@ public class DataLoader {
         TokenModel testToken = getOrCreateToken("test", editorIdentity, defaultSeries);
         TokenModel adminToken = getOrCreateToken("adm", adminIdentity, defaultSeries);
 
-        TokenModel show2Token = getOrCreateToken("public", publicIdentity, defaultSeries);
-        TokenModel test2Token = getOrCreateToken("edit", editorIdentity, defaultSeries);
-        TokenModel admin2Token = getOrCreateToken("admin", adminIdentity, defaultSeries);
+        TokenModel show2Token = getOrCreateToken("public", publicIdentity, secondSeries);
+        TokenModel test2Token = getOrCreateToken("edit", editorIdentity, secondSeries);
+        TokenModel admin2Token = getOrCreateToken("admin", adminIdentity, secondSeries);
 
         ProfileModel publicProfile = createProfile("Public profile", viewPermission);
         ProfileModel editorProfile = createProfile("Editor profile", viewPermission, editPermission);

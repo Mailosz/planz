@@ -118,7 +118,7 @@ public class ViewController {
 
 
 
-    @GetMapping(value="{token}/create")
+    @GetMapping(value="/create/{token}")
     public String createDocumentForSeries(@PathVariable("token") String token) {
 
         AccessObject access = accessService.getAccess(token, "admin");
@@ -136,32 +136,32 @@ public class ViewController {
         return createView(docOpt.get(), access, viewMode);
     }
 
-    @GetMapping(value="{token}/view")
+    @GetMapping(value="/view/{token}")
     public String openCurrentDocumentForView(@PathVariable(name = "token") String token) {
 
         AccessObject access = accessService.getAccess(token, "view");
         return openDocument(getCurrentDocument(access.getSeries()), access, ViewMode.View);
     }
 
-    @GetMapping(value="{token}/edit")
+    @GetMapping(value="/edit/{token}")
     public String openCurrentDocumentForEdit(@PathVariable(name = "token") String token) {
 
         AccessObject access = accessService.getAccess(token, "edit");
         return openDocument(getCurrentDocument(access.getSeries()), access, ViewMode.Edit);
     }
 
-    @GetMapping(value="{token}/view/{docId}")
+    @GetMapping(value="/view/{token}/{docId}")
     public String openDocumentForView(@PathVariable(name = "token") String token, @PathVariable(name = "docId") UUID docId) {
 
         AccessObject access = accessService.getAccess(token, "view");
-        return openDocument(documentRepository.findById(docId), access, ViewMode.View);
+        return openDocument(documentRepository.findById(docId).or(()-> getCurrentDocument(access.getSeries())), access, ViewMode.View);
     }
 
-    @GetMapping(value="{token}/edit/{docId}")
+    @GetMapping(value="/edit/{token}/{docId}")
     public String openDocumentForEdit(@PathVariable(name = "token") String token, @PathVariable(name = "docId") UUID docId) {
 
         AccessObject access = accessService.getAccess(token, "edit");
-        return openDocument(documentRepository.findById(docId), access, ViewMode.Edit);
+        return openDocument(documentRepository.findById(docId).or(()-> getCurrentDocument(access.getSeries())), access, ViewMode.Edit);
     }
 
 
