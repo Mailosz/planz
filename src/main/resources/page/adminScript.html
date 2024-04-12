@@ -16,7 +16,7 @@
 
         let isPublic = event.target.checked;
 
-        let url = "documents/" + docId + "/change/public/" + isPublic + "?token=" + token;
+        let url = "/documents/" + docId + "/change/public/" + isPublic + "?token=" + token;
         let options = null;
         handleRequest(event.target.id, url, options, (resp) => {
             return resp.text().then((text) => {
@@ -40,7 +40,7 @@
         
         let isEditable = event.target.checked;
 
-        let url = "documents/" + docId + "/change/editable/" + isEditable + "?token=" + token;
+        let url = "/documents/" + docId + "/change/editable/" + isEditable + "?token=" + token;
         let options = null;
 
         handleRequest(event.target.id, url, options, (resp) => {
@@ -63,7 +63,7 @@
     }
 
     function templateChange(event) {
-        fetch("documents/" + docId + "/change/template/" + event.target.options[event.target.selectedIndex].value + "?token=" + token).then((resp) => {
+        fetch("/documents/" + docId + "/change/template/" + event.target.options[event.target.selectedIndex].value + "?token=" + token).then((resp) => {
             if (resp.ok) {
                 return resp.text();
             } else {
@@ -81,7 +81,7 @@
     }
 
     function updateFieldOpts(input) {
-        let url = "fields/" + docId + "/" + input.id + "?token=" + token;
+        let url = "/fields/" + docId + "/" + input.id + "?token=" + token;
         let request = new Request(url, {
             method: "PUT",
             body: input.value,
@@ -100,7 +100,7 @@
         console.log("FieldId: " + fieldId);
         console.log("ValueId: " + valueId);
 
-        let url = "fields/" + docId + "/" + fieldId + "?token=" + token;
+        let url = "/fields/" + docId + "/" + fieldId + "?token=" + token;
         let request = new Request(url, {
             method: "GET"
         });
@@ -149,7 +149,7 @@
                 ),
                 builder.tag("div").class("admin-popup-row").attr("style", "text-align: right;").children(
                     builder.tag("span").attr("style", "text-decoration: underline; color: darkblue; cursor: pointer;").innerText("Historia zmian").event("click", (event) => {
-                        let historyUrl = "history/" + docId + "/" + fieldId + "?token=" + token;
+                        let historyUrl = "/history/" + docId + "/" + fieldId + "?token=" + token;
                         let request = new Request(historyUrl, {
                             method: "GET"
                         });
@@ -241,7 +241,7 @@
      * updates everything
      */
     function update() {
-        let url = "update?token=" + token;
+        let url = "/update?token=" + token;
         let request = new Request(url, {
             method: "POST",
         });
@@ -256,7 +256,7 @@
     }
 
     function updateDocumentContent() {
-        let url = "update/" + docId + "?token=" + token;
+        let url = "/update/" + docId + "?token=" + token;
         let request = new Request(url, {
             method: "POST",
         });
@@ -285,7 +285,7 @@
          */
         const builder = document.builder;
 
-        let url = "admin/" + seriesId + "?token=" + token;
+        let url = "/admin/" + seriesId + "?token=" + token;
         let request = new Request(url, {
             method: "GET",
         });

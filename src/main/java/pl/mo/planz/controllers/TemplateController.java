@@ -28,9 +28,10 @@ import pl.mo.planz.model.TemplateModel;
 import pl.mo.planz.repositories.DocumentRepository;
 import pl.mo.planz.repositories.FieldRepository;
 import pl.mo.planz.repositories.FieldValueRepository;
-import pl.mo.planz.repositories.ProfileRepository;
+import pl.mo.planz.repositories.PermissionRepository;
 import pl.mo.planz.repositories.TemplateRepository;
 import pl.mo.planz.repositories.ValueListRepository;
+import pl.mo.planz.services.AccessService;
 import pl.mo.planz.services.IdentityService;
 
 @RestController
@@ -41,7 +42,7 @@ public class TemplateController {
     TemplateRepository templateRepository;
 
     @Autowired
-    ProfileRepository profileRepository;
+    PermissionRepository profileRepository;
 
     @Autowired
     ValueListRepository listRepository;
@@ -51,6 +52,9 @@ public class TemplateController {
     
     @Autowired
     IdentityService identityService; 
+
+    @Autowired
+    AccessService accessService;
     
     @Transactional
     public void parseTemplateAndSave(String template, TemplateModel tm) throws TemplateParsingException {
@@ -140,7 +144,7 @@ public class TemplateController {
     public String postTemplate(@RequestBody String template, @RequestParam(name = "token", required = false) String token, @RequestParam(name = "name", required = false) String name) {
 
         //"security"
-        identityService.adminOrThrow(token);
+        accessService.adminOrThrow(token);
         
         TemplateModel tm = new TemplateModel();
         if (name != null) tm.setName(name);
@@ -161,7 +165,7 @@ public class TemplateController {
     public String updateTemplate(@PathVariable("uuid") UUID id, @RequestParam(name = "token", required = false) String token, @RequestParam(name = "name", required = false) String name, @RequestBody(required = false) String content) {
         
         //"security"
-        identityService.adminOrThrow(token);
+        accessService.adminOrThrow(token);
 
         var templateOpt = templateRepository.findById(id);
 
@@ -186,7 +190,7 @@ public class TemplateController {
     public List<UUID> getTemplates(@RequestParam(name = "token", required = false) String token) {
         
         //"security"
-        identityService.adminOrThrow(token);
+        accessService.adminOrThrow(token);
 
         List<UUID> ids = templateRepository.getAllIds();
         
@@ -197,7 +201,7 @@ public class TemplateController {
     public String getTemplate(@PathVariable("uuid") UUID id, @RequestParam(name = "token", required = false) String token) {
 
         //"security"
-        identityService.adminOrThrow(token);
+        accessService.adminOrThrow(token);
         
         var templateOpt = templateRepository.findById(id);
 

@@ -28,10 +28,12 @@ import pl.mo.planz.repositories.FieldRepository;
 import pl.mo.planz.repositories.FieldValueHistoryRepository;
 import pl.mo.planz.repositories.FieldValueRepository;
 import pl.mo.planz.repositories.IdentityRepository;
-import pl.mo.planz.repositories.ProfileRepository;
+import pl.mo.planz.repositories.PermissionRepository;
 import pl.mo.planz.repositories.SeriesRepository;
 import pl.mo.planz.repositories.TemplateRepository;
 import pl.mo.planz.repositories.ValueListRepository;
+import pl.mo.planz.services.AccessObject;
+import pl.mo.planz.services.AccessService;
 import pl.mo.planz.services.IdentityService;
 import pl.mo.planz.view.PageBuilder;
 
@@ -83,7 +85,7 @@ public class Controller {
     FieldValueRepository fieldValueRepository;
 
     @Autowired
-    ProfileRepository profileRepository;
+    PermissionRepository profileRepository;
 
     @Autowired
     ValueListRepository listRepository;
@@ -106,44 +108,12 @@ public class Controller {
     @Autowired
     PageBuilder pageBuilder;
 
+    @Autowired
+    AccessService accessService;
 
 
-    @GetMapping(value="/create/{seriesId}")
-    public String createDocumentForSeries(@RequestParam(name = "token", required = false) String token, @PathVariable("seriesId") UUID seriesId) {
-
-        Optional<SeriesModel> opt = seriesRepository.findById(seriesId);
-
-        if (!opt.isPresent()) throw new ResponseStatusException(HttpStatusCode.valueOf(404), "No series");
-
-        identityService.adminOrThrow(token);
-
-        return pageBuilder.buildCreatePage(opt.get(), token);
-    }
 
 
-    @GetMapping(value="/")
-    public String openCurrentDocument(@RequestParam(name = "token", required = false) String token, @RequestParam(name = "mode", required = false) String mode) {
-
-        // if (token == null) throw new ResponseStatusException(HttpStatus.FORBIDDEN);
-
-        Optional<DocumentModel> opt = getCurrentDocument(documentRepository);
-        
-        DocumentModel doc = null;
-        if (opt.isPresent()) {
-            doc = opt.get();
-        } else {
-            currentDocumentId = null;
-            var docs = documentRepository.findAll();
-            if (docs.size() > 0) {
-                doc = docs.get(0);
-            }
-        }
-
-        if (doc == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
-        return createView(doc, token, mode);
-    }
 
     private static Optional<DocumentModel> getCurrentDocument(DocumentRepository docRepo) {
         if (currentDocumentId != null) {
@@ -182,29 +152,10 @@ public class Controller {
         return current.getId();
     }
 
-    @GetMapping(value="/{docId}")
-    public String openDocument(@PathVariable("docId") UUID docId, @RequestParam(name = "token", required = false) String token, @RequestParam(name = "mode", required = false) String mode, HttpServletResponse response) {
 
-        //if (token == null) throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+    public String createView(DocumentModel doc, AccessObject access, ViewMode viewMode) {
 
-        var opt = documentRepository.findById(docId);
-        
-        if (opt.isPresent()) {
-            return createView(opt.get(), token, mode);
-        } else {
-            if (token != null) {
-                response.setHeader("Location", "/?token=" + token);
-            } else {
-                response.setHeader("Location", "/");
-            }
-            response.setStatus(307);
-            return "";
-        }
-    }
-
-    public String createView(DocumentModel doc, String token, String mode) {
-
-        Set<String> profiles = identityService.getProfilesOrThrow(token);
+        Set<String> profiles = access.getPermissions();
 
         boolean isAdmin = false;
         if (profiles.contains("admin")) {
@@ -217,18 +168,9 @@ public class Controller {
         }
 
         if (isAdmin) {
-            if (mode != null) {
-                if ("view".equalsIgnoreCase(mode)) {
-                    isAdmin = false;
-                    isEdit = false;
-                } else if ("edit".equalsIgnoreCase(mode)) {
-                    isAdmin = false;
-                }
-            }
+
         } else if (isEdit) {
-            if ("view".equalsIgnoreCase(mode)) {
-                isEdit = false;
-            }
+
         } else {
             if (!profiles.contains("view")) {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN);
@@ -242,7 +184,7 @@ public class Controller {
         if (isAdmin || (isEdit && doc.isEditable())) {
             Map<String, FieldValueModel> valueMap = fieldValueRepository.getAllForDocumentId(doc.getId()).stream().filter((v) -> v.getValue() != null).collect(Collectors.toMap((fv) -> fv.getField().getName(), (fv) -> fv, (val1, val2) -> {return val2;}));
         
-            var pair = PageBuilder.buildDocumentForEdit(doc, valueMap, profiles, token);
+            var pair = PageBuilder.buildDocumentForEdit(doc, valueMap, profiles, access.getToken().getValue());
             content = pair.getFirst();
             containsChanges = pair.getSecond();
         } else {
@@ -261,7 +203,7 @@ public class Controller {
         }
 
 
-        return pageBuilder.buildPage(isAdmin, isEdit, doc, token, containsChanges, content);
+        return pageBuilder.buildPage(isAdmin, isEdit, doc, access.getToken().getValue(), containsChanges, content);
     }
 
     /**
@@ -283,79 +225,4 @@ public class Controller {
     }
 
 
-
-    @GetMapping(value="documents")
-    public List<DocumentDTO> getDocuments(@RequestParam(name = "token", required = false) String token) {
-
-        //"security"
-        identityService.adminOrThrow(token);
-
-        List<DocumentModel> models = documentRepository.findAll();
-
-        List<DocumentDTO> dtos = models.stream().map((m) -> docModelToDto(m)).collect(Collectors.toList());
-        
-        return dtos;
-    }
-
-
-    /**
-     * Odświeżanie wszystkiego
-     * @param token
-     */
-    @PostMapping(value="update")
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    @ResponseStatus(code = HttpStatus.OK)
-    public void update(@RequestParam("token") String token) {
-        identityService.adminOrThrow(token);
-
-        DocumentGenerator.removeOldDocuments(documentRepository, fieldValueRepository, historyRepository);
-        DocumentGenerator.generateDocuments(documentRepository, templateRepository, seriesRepository);
-
-    }
-
-    /**
-     * Odświeżanie dokumentu
-     * @param token
-     */
-    @PostMapping(value="update/{docId}")
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    @ResponseStatus(code = HttpStatus.OK)
-    public void updateDocumentContent(@PathVariable("docId") UUID docId, @RequestParam(name = "token", required = false) String token) {
-        identityService.adminOrThrow(token);
-
-        var docOpt = documentRepository.findById(docId);
-
-        if (docOpt.isPresent()) {
-            docOpt.get().setGeneratedContent(generateDocumentContent(docOpt.get()));
-            documentRepository.save(docOpt.get());
-        } else {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
-
-    }
-
-
-    @GetMapping(value="test") 
-    public void test() {
-        System.out.println("Here");
-        throw new ResponseStatusException(HttpStatus.ALREADY_REPORTED);
-    }
-
-
-    private DocumentDTO docModelToDto(DocumentModel model) {
-        DocumentDTO dto = new DocumentDTO();
-        dto.setTemplateId(model.getTemplate().getId());
-        dto.setWeek(model.getWeek());
-        dto.setId(model.getId());
-
-        return dto;
-    }
-
-    private DocumentModel docDtoToModel(DocumentDTO dto) {
-        DocumentModel model = new DocumentModel();
-        model.setWeek(dto.getWeek());
-        model.setTemplate(templateRepository.getReferenceById(dto.getTemplateId()));
-
-        return model;
-    }
 }

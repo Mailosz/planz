@@ -6,7 +6,7 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import pl.mo.planz.model.ProfileModel;
+import pl.mo.planz.model.PermissionModel;
 import pl.mo.planz.model.ValueListItemModel;
 import pl.mo.planz.model.ValueListModel;
 

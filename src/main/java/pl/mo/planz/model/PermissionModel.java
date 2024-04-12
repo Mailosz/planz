@@ -3,22 +3,19 @@ package pl.mo.planz.model;
 import java.util.Set;
 import java.util.UUID;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-public class IdentityModel {
+public class PermissionModel {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Getter
@@ -30,17 +27,13 @@ public class IdentityModel {
     @Column(unique = true)
     String name;
 
+    @ManyToMany
+    @JoinTable(
+        name="permission_profile",
+        joinColumns = @JoinColumn(name = "permission_id"),
+        inverseJoinColumns = @JoinColumn(name = "profile_id")
+    )
     @Getter
     @Setter
-    boolean isActive = true;
-
-    @Getter
-    @Setter
-    @Enumerated(EnumType.STRING)
-    IdentityType type = IdentityType.TOKEN;
-
-    @OneToMany(mappedBy = "identity", cascade = CascadeType.REMOVE)
-    @Getter
-    @Setter
-    Set<ProfileAssignmentModel> assignments; 
+    Set<ProfileModel> profiles; 
 }

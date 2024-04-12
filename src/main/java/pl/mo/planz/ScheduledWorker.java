@@ -29,8 +29,8 @@ public class ScheduledWorker {
 
         scheduledTask = new ScheduledTask(docRepo, templateRepo, valueRepo, histRepo, 30000 * 1000);// about a third of a day
 
-        scheduledThread = new Thread(scheduledTask, "schedTask");
-        scheduledThread.start();
+        // scheduledThread = new Thread(scheduledTask, "schedTask");
+        // scheduledThread.start();
     }
 
     @PreDestroy

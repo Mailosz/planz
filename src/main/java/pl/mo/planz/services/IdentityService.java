@@ -1,5 +1,6 @@
 package pl.mo.planz.services;
 
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -11,53 +12,47 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import pl.mo.planz.model.IdentityModel;
+import pl.mo.planz.model.ProfileAssignmentModel;
+import pl.mo.planz.model.ProfileModel;
+import pl.mo.planz.model.SeriesModel;
 import pl.mo.planz.repositories.FieldRepository;
 import pl.mo.planz.repositories.IdentityRepository;
-import pl.mo.planz.repositories.ProfileRepository;
+import pl.mo.planz.repositories.PermissionRepository;
+import pl.mo.planz.repositories.ProfileAssignmentRepository;
 import pl.mo.planz.repositories.ValueListRepository;
 
 @Service
 public class IdentityService {
 
     @Autowired
-    ProfileRepository profileRepository;
+    PermissionRepository profileRepository;
 
 
     @Autowired
     IdentityRepository identityRepository;
 
+    @Autowired
+    ProfileAssignmentRepository assignmentRepository;
 
-    public void adminOrThrow(String token) {
-        requireProfileOrThrow(token, "admin");
-    }
+    @Autowired
+    AccessService accessService;
 
-    public Set<String> getProfilesOrThrow(String token) {
-        var identity = identityRepository.findFromToken(token);
-        if (!identity.isPresent() || !identity.get().isActive()) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+
+
+    public void assignProfile(ProfileModel profile, IdentityModel identity, SeriesModel series) {
+
+        Optional<ProfileAssignmentModel> opt = assignmentRepository.findByProfileAndIdentityAndSeries(profile, identity, series);
+
+        if (!opt.isPresent()) {
+            ProfileAssignmentModel assignment = new ProfileAssignmentModel();
+            assignment.setProfile(profile);
+            assignment.setIdentity(identity);
+            assignment.setSeries(series);
+            assignment.setSince(Instant.now());
+
+            assignmentRepository.save(assignment);
         }
-
-        return identity.get().getProfiles().stream().map((p) -> p.getName()).collect(Collectors.toSet());
-
     }
 
 
-    public Set<String> getProfiles(Optional<IdentityModel> identity) {
-        if (identity.isPresent()) {
-            return identity.get().getProfiles().stream().map((p) -> p.getName()).collect(Collectors.toSet());
-        } else {
-            return new HashSet<String>();
-        }
-    }
-
-    public Set<String> requireProfileOrThrow(String token, String profile) {
-
-        Set<String> profiles = getProfilesOrThrow(token);
-
-        if (!profiles.contains(profile)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
-        }
-
-        return profiles;
-    }
 }

@@ -2,8 +2,10 @@ package pl.mo.planz.controllers;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatusCode;
@@ -24,10 +26,11 @@ import pl.mo.planz.repositories.FieldRepository;
 import pl.mo.planz.repositories.FieldValueHistoryRepository;
 import pl.mo.planz.repositories.FieldValueRepository;
 import pl.mo.planz.repositories.IdentityRepository;
-import pl.mo.planz.repositories.ProfileRepository;
+import pl.mo.planz.repositories.PermissionRepository;
 import pl.mo.planz.repositories.SeriesRepository;
 import pl.mo.planz.repositories.TemplateRepository;
 import pl.mo.planz.repositories.ValueListRepository;
+import pl.mo.planz.services.AccessService;
 import pl.mo.planz.services.DocumentService;
 import pl.mo.planz.services.IdentityService;
 
@@ -45,7 +48,7 @@ public class DocumentController {
     FieldValueRepository fieldValueRepository;
 
     @Autowired
-    ProfileRepository profileRepository;
+    PermissionRepository profileRepository;
 
     @Autowired
     ValueListRepository listRepository;
@@ -68,13 +71,46 @@ public class DocumentController {
     @Autowired
     DocumentService documentService;
 
+    @Autowired
+    AccessService accessService;
 
+
+    @GetMapping(value="documents")
+    public List<DocumentDTO> getDocuments(@RequestParam(name = "token", required = false) String token) {
+
+        //"security"
+        accessService.adminOrThrow(token);
+
+        List<DocumentModel> models = documentRepository.findAll();
+
+        List<DocumentDTO> dtos = models.stream().map((m) -> docModelToDto(m)).collect(Collectors.toList());
+        
+        return dtos;
+    }
+
+    
+    private DocumentDTO docModelToDto(DocumentModel model) {
+        DocumentDTO dto = new DocumentDTO();
+        dto.setTemplateId(model.getTemplate().getId());
+        dto.setWeek(model.getWeek());
+        dto.setId(model.getId());
+
+        return dto;
+    }
+
+    private DocumentModel docDtoToModel(DocumentDTO dto) {
+        DocumentModel model = new DocumentModel();
+        model.setWeek(dto.getWeek());
+        model.setTemplate(templateRepository.getReferenceById(dto.getTemplateId()));
+
+        return model;
+    }
 
     @PostMapping(value="documents/create/{seriesId}")
     public UUID postDocument(@PathVariable("seriesId") UUID seriesId, @RequestParam(name = "token", required = false) String token) {
 
         //"security"
-        identityService.adminOrThrow(token);
+        accessService.adminOrThrow(token);
 
 
         Optional<SeriesModel> seriesOpt = seriesRepository.findById(seriesId);
@@ -94,7 +130,7 @@ public class DocumentController {
     public UUID postDocument(@RequestBody DocumentDTO dto, @RequestParam(name = "token", required = false) String token) {
 
         //"security"
-        identityService.adminOrThrow(token);
+        accessService.adminOrThrow(token);
 
 
         DocumentModel doc = new DocumentModel();
@@ -111,7 +147,7 @@ public class DocumentController {
     public String changeDocumentVariable(@PathVariable("docId") UUID docId, @RequestParam(name = "token", required = false) String token, @PathVariable("variable") String variable, @RequestBody String value) {
 
         //"security"
-        identityService.adminOrThrow(token);
+        accessService.adminOrThrow(token);
 
         var opt = documentRepository.findById(docId);
 
@@ -184,7 +220,7 @@ public class DocumentController {
     public String changeIsPublic(@PathVariable("uuid") UUID id, @RequestParam(name = "token", required = false) String token, @PathVariable("public") Boolean isPublic) {
 
         //"security"
-        identityService.adminOrThrow(token);
+        accessService.adminOrThrow(token);
 
         var opt = documentRepository.findById(id);
 
@@ -200,7 +236,7 @@ public class DocumentController {
     public String changeIsEditable(@PathVariable("uuid") UUID id, @RequestParam(name = "token", required = false) String token, @PathVariable("editable") Boolean iseditable) {
 
         //"security"
-        identityService.adminOrThrow(token);
+        accessService.adminOrThrow(token);
 
         var opt = documentRepository.findById(id);
 
@@ -216,7 +252,7 @@ public class DocumentController {
     public String changeDocTemplate(@PathVariable("uuid") UUID docId, @RequestParam(name = "token", required = false) String token, @PathVariable("templateId") UUID templateId) {
 
         //"security"
-        identityService.adminOrThrow(token);
+        accessService.adminOrThrow(token);
 
         var docOpt = documentRepository.findById(docId);
         var temOpt = templateRepository.findById(templateId);
@@ -235,7 +271,7 @@ public class DocumentController {
     public String updateDocument(@PathVariable("uuid") UUID id, @RequestBody DocumentDTO dto, @RequestParam(name = "token", required = false) String token) {
 
         //"security"
-        identityService.adminOrThrow(token);
+        accessService.adminOrThrow(token);
 
         var opt = documentRepository.findById(id);
 

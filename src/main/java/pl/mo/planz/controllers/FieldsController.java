@@ -26,9 +26,12 @@ import pl.mo.planz.repositories.FieldRepository;
 import pl.mo.planz.repositories.FieldValueHistoryRepository;
 import pl.mo.planz.repositories.FieldValueRepository;
 import pl.mo.planz.repositories.IdentityRepository;
-import pl.mo.planz.repositories.ProfileRepository;
+import pl.mo.planz.repositories.PermissionRepository;
 import pl.mo.planz.repositories.TemplateRepository;
 import pl.mo.planz.repositories.ValueListRepository;
+import pl.mo.planz.services.AccessObject;
+import pl.mo.planz.services.AccessService;
+import pl.mo.planz.services.IdentityService;
 import pl.mo.planz.view.PageBuilder;
 
 import java.time.Instant;
@@ -81,7 +84,7 @@ public class FieldsController {
     FieldValueRepository fieldValueRepository;
 
     @Autowired
-    ProfileRepository profileRepository;
+    PermissionRepository profileRepository;
 
     @Autowired
     ValueListRepository listRepository;
@@ -94,15 +97,13 @@ public class FieldsController {
 
     @Autowired
     FieldValueHistoryRepository historyRepository;
-    
-    public void adminOrThrow(String token) {
-        var identity = identityRepository.findFromToken(token);
-        Set<String> profiles = getProfiles(identity);
 
-        if (!profiles.contains("admin")) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
-        }
-    }
+    @Autowired
+    IdentityService identityService;
+
+    @Autowired
+    AccessService accessService;
+    
 
 
     @PutMapping(value="values/{docId}/{fieldId}")
@@ -110,11 +111,13 @@ public class FieldsController {
     @ResponseStatus(code = HttpStatus.OK)
     public void updateFieldValue(@PathVariable("docId") UUID docId, @PathVariable("fieldId") UUID fieldId, @RequestParam("token") String token, @RequestBody(required = false) String value) {
 
+        AccessObject access = accessService.getAccess(token);
+
         var identity = identityRepository.findFromToken(token);
         if (!identity.isPresent()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
-        Set<String> profiles = getProfiles(identity);
+        Set<String> permissions = access.getPermissions();
 
 
         //TODO: get list and remove duplicates
@@ -140,7 +143,7 @@ public class FieldsController {
             model = newFieldValueModel(doc, field);
         }
         
-        if (!profiles.contains("admin") && (!model.getDocument().isEditable() || model.getField().getEditProfile() == null || !profiles.contains(model.getField().getEditProfile().getName()))) {
+        if (!permissions.contains("admin") && (!model.getDocument().isEditable() || model.getField().getEditProfile() == null || !permissions.contains(model.getField().getEditProfile().getName()))) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
@@ -180,7 +183,7 @@ public class FieldsController {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public FieldDeclarationDTO getFieldDeclaration(@PathVariable("docId") UUID docId, @PathVariable("fieldId") UUID fieldId, @RequestParam("token") String token) {
 
-        adminOrThrow(token);
+        accessService.adminOrThrow(token);
 
         var opt = fieldValueRepository.findByDocAndField(docId, fieldId);
         
@@ -208,7 +211,7 @@ public class FieldsController {
     @ResponseStatus(code = HttpStatus.OK)
     public void updateFieldDeclaration(@PathVariable("docId") UUID docId, @PathVariable("fieldId") UUID fieldId, @RequestParam("token") String token, @RequestBody(required = true) FieldDeclarationDTO opts) {
 
-        adminOrThrow(token);
+        accessService.adminOrThrow(token);
 
 
         var opt = fieldValueRepository.findByDocAndField(docId, fieldId);
@@ -246,7 +249,7 @@ public class FieldsController {
     @GetMapping(value="history/{docId}/{fieldId}")
     public List<HistoryItemDTO> getHistory(@PathVariable("docId") UUID docId, @PathVariable("fieldId") UUID fieldId, @RequestParam("token") String token) {
 
-        adminOrThrow(token);
+        accessService.adminOrThrow(token);
 
         var value = fieldValueRepository.findByDocAndField(docId, fieldId);
         if (value.isPresent()) {
@@ -279,14 +282,5 @@ public class FieldsController {
         }
 
 
-    }
-
-
-    private Set<String> getProfiles(Optional<IdentityModel> identity) {
-        if (identity.isPresent()) {
-            return identity.get().getProfiles().stream().map((p) -> p.getName()).collect(Collectors.toSet());
-        } else {
-            return new HashSet<String>();
-        }
     }
 }

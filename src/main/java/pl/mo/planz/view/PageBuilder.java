@@ -112,7 +112,7 @@ public class PageBuilder {
 
         String prev = null;
         if (series.getLastDocument() != null) {
-            prev = "/"+series.getLastDocument().getId() + "?token=" + token;
+            prev = "/" + token + "/view/" + series.getLastDocument().getId();
         }
 
         content += buildArrows(prev, null);
@@ -142,7 +142,7 @@ public class PageBuilder {
             if (doc.getNext() != null) {
                 next = doc.getNext().getId().toString() + "?token=" + token;
             } else { // link to create page
-                next = "create/" + doc.getSeries().getId() + "?token=" + token;
+                next = "create";
             }
 
             if (doc.getPrev() != null) {

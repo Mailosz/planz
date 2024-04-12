@@ -1,13 +1,12 @@
 package pl.mo.planz.model;
 
+import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -18,29 +17,29 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-public class IdentityModel {
+public class ProfileAssignmentModel {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Getter
     @Setter
     UUID id;
 
+    @ManyToOne
     @Getter
     @Setter
-    @Column(unique = true)
-    String name;
+    ProfileModel profile; 
+
+    @ManyToOne
+    @Getter
+    @Setter
+    IdentityModel identity; 
+
+    @ManyToOne
+    @Getter
+    @Setter
+    SeriesModel series; 
 
     @Getter
     @Setter
-    boolean isActive = true;
-
-    @Getter
-    @Setter
-    @Enumerated(EnumType.STRING)
-    IdentityType type = IdentityType.TOKEN;
-
-    @OneToMany(mappedBy = "identity", cascade = CascadeType.REMOVE)
-    @Getter
-    @Setter
-    Set<ProfileAssignmentModel> assignments; 
+    Instant since;
 }

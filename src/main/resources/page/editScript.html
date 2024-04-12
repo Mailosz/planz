@@ -117,40 +117,6 @@
         }
     }
 
-    // function invokeResendErrors() {
-    //     if (errorResenderTimeout != null) {
-    //         clearTimeout(errorResenderTimeout);
-    //     }
-
-    //     let errorOverlay = document.getElementById("save-error-overlay");
-
-    //     if (errorOverlay == null) {
-    //         errorOverlay = document.createElement("div");
-    //         errorOverlay.id = "save-error-overlay";
-    //         errorOverlay.innerText = "Błąd zapisu. Poczekaj chwilę...";
-    //         document.body.append(errorOverlay);
-    //     }
-
-    //     if (fieldErrorsSet.size > 0) {
-    //         errorOverlay.style.display = "block";
-
-    //         errorResenderTimeout = setTimeout(async () =>  {
-    //             resendCounter++;
-    //             console.log("Error resend counter: " + resendCounter);
-
-    //             for (let errorInput of fieldErrorsSet) {
-    //                 await updateFieldValue(errorInput);
-    //             }
-
-    //             invokeResendErrors();
-    //         }, 1000 * (resendCounter));
-    //     } else {
-    //         errorOverlay.style.display = "none";
-    //         resendCounter = 0;
-    //     }
-
-
-    // }
 
     function updateStatusIndicator(status) {
 
@@ -215,7 +181,7 @@
 
     function updateFieldValue(input) {
 
-        let url = "values/" + docId + "/" + input.id + "?token=" + token;
+        let url = "/values/" + docId + "/" + input.id + "?token=" + token;
 
         let options = {
             method: "PUT",

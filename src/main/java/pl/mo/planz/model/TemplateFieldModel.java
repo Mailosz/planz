@@ -51,7 +51,7 @@ public class TemplateFieldModel {
     @ManyToOne
     @Getter
     @Setter
-    ProfileModel editProfile;
+    PermissionModel editProfile;
 
     @Column(length = 1000000)
     @Getter
