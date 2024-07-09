@@ -29,7 +29,7 @@ import pl.mo.planz.repositories.IdentityRepository;
 import pl.mo.planz.repositories.PermissionRepository;
 import pl.mo.planz.repositories.SeriesRepository;
 import pl.mo.planz.repositories.TemplateRepository;
-import pl.mo.planz.repositories.ValueListRepository;
+import pl.mo.planz.repositories.DatalistRepository;
 import pl.mo.planz.services.AccessService;
 import pl.mo.planz.services.DocumentService;
 import pl.mo.planz.services.IdentityService;
@@ -51,7 +51,7 @@ public class DocumentController {
     PermissionRepository profileRepository;
 
     @Autowired
-    ValueListRepository listRepository;
+    DatalistRepository listRepository;
 
     @Autowired
     FieldRepository fieldRepository;

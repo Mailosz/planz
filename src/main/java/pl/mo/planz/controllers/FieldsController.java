@@ -20,7 +20,7 @@ import pl.mo.planz.model.FieldValueModel;
 import pl.mo.planz.model.IdentityModel;
 import pl.mo.planz.model.TemplateFieldModel;
 import pl.mo.planz.model.TemplateModel;
-import pl.mo.planz.model.ValueListModel;
+import pl.mo.planz.model.DatalistModel;
 import pl.mo.planz.repositories.DocumentRepository;
 import pl.mo.planz.repositories.FieldRepository;
 import pl.mo.planz.repositories.FieldValueHistoryRepository;
@@ -28,7 +28,7 @@ import pl.mo.planz.repositories.FieldValueRepository;
 import pl.mo.planz.repositories.IdentityRepository;
 import pl.mo.planz.repositories.PermissionRepository;
 import pl.mo.planz.repositories.TemplateRepository;
-import pl.mo.planz.repositories.ValueListRepository;
+import pl.mo.planz.repositories.DatalistRepository;
 import pl.mo.planz.services.AccessObject;
 import pl.mo.planz.services.AccessService;
 import pl.mo.planz.services.IdentityService;
@@ -87,7 +87,7 @@ public class FieldsController {
     PermissionRepository profileRepository;
 
     @Autowired
-    ValueListRepository listRepository;
+    DatalistRepository listRepository;
 
     @Autowired
     FieldRepository fieldRepository;
@@ -202,6 +202,9 @@ public class FieldsController {
         dto.setType(model.getType());
         dto.setValue(model.getValue());
         dto.setDefaultValue(model.getField().getDefaultValue());
+        if (model.getField().getDatalist() != null) {
+            dto.setDatalist(model.getField().getDatalist().getName());
+        }
 
         return dto;
     }

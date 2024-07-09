@@ -1,5 +1,5 @@
 <script type="module">
-    import {PlacementHelper} from './js/utils/PlacementHelper.js';
+    import {PlacementHelper} from '/js/utils/PlacementHelper.js';
     import {Popup} from './js/ui/Popup.js';
     import {DocBuilder} from './js/utils/DocBuilder.js';
 
@@ -96,6 +96,183 @@
         });
     };
 
+    function showHistoryPopup(fieldId, target) {
+        const builder = document.builder;
+
+        let historyUrl = "/history/" + docId + "/" + fieldId + "?token=" + token;
+        let request = new Request(historyUrl, {
+            method: "GET"
+        });
+        fetch(request).then((resp) => {
+            console.log(resp);
+            if (resp.ok) {
+                return resp.json();
+            } else {
+                showResultPopup("fail-popup", "Błąd");
+            }
+        }).then((json) => {
+
+            
+            if (Array.isArray(json) && json.length > 0) {
+                let teble = builder.tag("table");
+                table.children(
+                        builder.tag("tr").children(
+                            builder.tag("th").innerText("Wartość"),
+                            builder.tag("th").innerText("Edytujący"),
+                            builder.tag("th").innerText("Czas"),
+                        )
+                    )
+                for (let row of json) {
+                    table.children(
+                        builder.tag("tr").children(
+                            builder.tag("td").innerText(row.value),
+                            builder.tag("td").innerText(row.editor),
+                            builder.tag("td").innerText(row.time),
+                        )
+                    )
+                }
+                let popup = new Popup(table.getTag(), {});
+                popup.show(null, "center center");
+            } else {
+                let content = builder.tag("span").innerText("Brak danych").getTag();
+                let popup = new Popup(content, {});
+                popup.show(target, "rightOut bottomOut");
+            }
+
+
+        });
+    }
+
+    function showDatalistPopup(fieldId) {
+        const builder = document.builder;
+
+        let datalistUrl = "/datalist?token=" + token;
+        let request = new Request(datalistUrl, {
+            method: "GET"
+        });
+        fetch(request).then((resp) => {
+            console.log(resp);
+            if (resp.ok) {
+                return resp.json();
+            } else {
+                showResultPopup("fail-popup", "Błąd");
+            }
+        }).then((json) => {
+
+            let table = builder.tag("table");
+            table.children(
+                builder.tag("caption").innerText("Listy wartości"),
+                builder.tag("tr").children(
+                    builder.tag("th"),
+                    builder.tag("th").innerText("Nazwa"),
+                    builder.tag("th").innerText("Opis"),
+                    builder.tag("th"),
+                )
+            )
+        
+            if (Array.isArray(json) && json.length > 0) {
+
+                for (let row of json) {
+                    table.children(
+                        builder.tag("tr").children(
+                            builder.tag("td").children(builder.tag("button").innerText("Wybierz")),
+                            builder.tag("td").innerText(row.name),
+                            builder.tag("td").innerText(row.description),
+                            builder.tag("td").children(builder.tag("button").innerText("Edytuj").event("click", (event) => {
+                                showDatalistEditPopup(row.id)
+                            }))
+                        )
+                    )
+                }
+
+            } 
+
+            let popup = new Popup(table.getTag(), {});
+            popup.show(null, "center center");
+
+        });
+    }
+
+    function showDatalistEditPopup(datalistId) {
+        const builder = document.builder;
+
+        let datalistUrl = "/datalist/" + datalistId + "?token=" + token;
+        let request = new Request(datalistUrl, {
+            method: "GET"
+        });
+        fetch(request).then((resp) => {
+            console.log(resp);
+            if (resp.ok) {
+                return resp.json();
+            } else {
+                showResultPopup("fail-popup", "Błąd");
+            }
+        }).then((json) => {
+
+            let content = builder.tag("div"); 
+            content.children(builder.tag("h1").innerText("Edycja listy wartości"));
+
+            let list = builder.tag("div");
+            content.children(list);
+
+            let addLine = (value) => {
+
+                let line = builder.tag("div").children(
+                    builder.tag("input").attr("value", value),
+                    builder.tag("button").innerText("X").event("click", (event) => {
+                        line.get().parentElement.removeChild(line.get());
+                    })
+                )
+                list.children(line);
+            };
+
+            if (Array.isArray(json) && json.length > 0) {
+
+                for (let row of json) {
+                    addLine(row);
+                }
+            } 
+
+            content.children(
+                builder.tag("div").children(
+                    builder.tag("button").innerText("Dodaj").event("click", (event) => {
+                        addLine("");
+                    })
+                ),
+                builder.tag("div").attr("style", "text-align:center; padding: 10px;").children(
+                    builder.tag("button").innerText("Zapisz").event("click", (event) => {
+                        let value = "";
+                        let elem = list.get().firstChild;
+                        while (elem != null) {
+                            value += elem.firstChild.value + "\n";
+                            elem = elem.nextSibling;
+                        }
+                        let url = "/datalist/" + datalistId + "?token=" + token;
+                        let request = new Request(datalistUrl, {
+                            method: "PUT",
+                            body: value
+                        });
+                        fetch(request).then((resp) => {
+                            if (resp.ok) {
+                                showResultPopup("success-popup", "Wykonano");
+                                Popup.getPopupOfElement(event.target).hide();
+                            } else {
+                                showResultPopup("fail-popup", "Błąd");
+                            }
+                            console.log(resp);
+                        });
+                    }),
+                    builder.text("    "),
+                    builder.tag("button").innerText("Anuluj").event("click", (event) => { Popup.getPopupOfElement(event.target).hide(); })
+                ),
+            );
+
+            let popup = new Popup(content.getTag(), {pointerDismissable: false});
+            popup.show(null, "center center");
+
+        });
+    }
+
     function showAdminPopup(fieldId, valueId, event) {
         console.log("FieldId: " + fieldId);
         console.log("ValueId: " + valueId);
@@ -149,53 +326,19 @@
                 ),
                 builder.tag("div").class("admin-popup-row").attr("style", "text-align: right;").children(
                     builder.tag("span").attr("style", "text-decoration: underline; color: darkblue; cursor: pointer;").innerText("Historia zmian").event("click", (event) => {
-                        let historyUrl = "/history/" + docId + "/" + fieldId + "?token=" + token;
-                        let request = new Request(historyUrl, {
-                            method: "GET"
-                        });
-                        fetch(request).then((resp) => {
-                            console.log(resp);
-                            if (resp.ok) {
-                                return resp.json();
-                            } else {
-                                showResultPopup("fail-popup", "Błąd");
-                            }
-                        }).then((json) => {
-
-                            
-                            if (Array.isArray(json) && json.length > 0) {
-                                let content = builder.tag("table");
-                                table.children(
-                                        builder.tag("tr").children(
-                                            builder.tag("th").innerText("Wartość"),
-                                            builder.tag("th").innerText("Edytujący"),
-                                            builder.tag("th").innerText("Czas"),
-                                        )
-                                    )
-                                for (let row of json) {
-                                    table.children(
-                                        builder.tag("tr").children(
-                                            builder.tag("td").innerText(row.value),
-                                            builder.tag("td").innerText(row.editor),
-                                            builder.tag("td").innerText(row.time),
-                                        )
-                                    )
-                                }
-                                let popup = new Popup(table.getTag(), {});
-                                popup.show(null, "center center");
-                            } else {
-                                let content = builder.tag("span").innerText("Brak danych").getTag();
-                                let popup = new Popup(content, {});
-                                popup.show(event.target, "rightOut bottomOut");
-                            }
-
-
-                        });
+                        showHistoryPopup(fieldId, event.target);
                     }).invoke((el) => {
                         if (valueId == null) {
                             console.log("elo");
                             el.style.display = "none";
                         }
+                    })
+                ),
+                builder.tag("div").class("admin-popup-row").children(
+                    builder.tag("span").innerText("Lista podpowiedzi: "),
+                    builder.tag("span").innerText(json.datalist),
+                    builder.tag("button").innerText("Zmień").event("click", (event) => {
+                        showDatalistPopup(fieldId);
                     })
                 ),
                 builder.tag("div").class("admin-popup-row").children(

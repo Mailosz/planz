@@ -30,7 +30,7 @@ import pl.mo.planz.repositories.FieldRepository;
 import pl.mo.planz.repositories.FieldValueRepository;
 import pl.mo.planz.repositories.PermissionRepository;
 import pl.mo.planz.repositories.TemplateRepository;
-import pl.mo.planz.repositories.ValueListRepository;
+import pl.mo.planz.repositories.DatalistRepository;
 import pl.mo.planz.services.AccessService;
 import pl.mo.planz.services.IdentityService;
 
@@ -45,7 +45,7 @@ public class TemplateController {
     PermissionRepository profileRepository;
 
     @Autowired
-    ValueListRepository listRepository;
+    DatalistRepository listRepository;
 
     @Autowired
     FieldRepository fieldRepository;

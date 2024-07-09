@@ -29,7 +29,7 @@ import pl.mo.planz.model.FieldValueModel;
 import pl.mo.planz.model.SeriesModel;
 import pl.mo.planz.model.TemplateFieldModel;
 import pl.mo.planz.model.TemplateModel;
-import pl.mo.planz.model.ValueListModel;
+import pl.mo.planz.model.DatalistModel;
 import pl.mo.planz.repositories.TemplateRepository;
 
 @Component
@@ -207,7 +207,7 @@ public class PageBuilder {
         //building template
         String template = docModel.getTemplate().getContent();
         StringBuffer templateBuffer = new StringBuffer(template);
-        Set<ValueListModel> datalists = new HashSet<>();
+        Set<DatalistModel> datalists = new HashSet<>();
         for (var field : fields) {
 
             String listname;

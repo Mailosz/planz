@@ -22,7 +22,7 @@ import pl.mo.planz.model.IdentityModel;
 import pl.mo.planz.model.SeriesModel;
 import pl.mo.planz.model.TemplateFieldModel;
 import pl.mo.planz.model.TemplateModel;
-import pl.mo.planz.model.ValueListModel;
+import pl.mo.planz.model.DatalistModel;
 import pl.mo.planz.repositories.DocumentRepository;
 import pl.mo.planz.repositories.FieldRepository;
 import pl.mo.planz.repositories.FieldValueHistoryRepository;
@@ -31,7 +31,7 @@ import pl.mo.planz.repositories.IdentityRepository;
 import pl.mo.planz.repositories.PermissionRepository;
 import pl.mo.planz.repositories.SeriesRepository;
 import pl.mo.planz.repositories.TemplateRepository;
-import pl.mo.planz.repositories.ValueListRepository;
+import pl.mo.planz.repositories.DatalistRepository;
 import pl.mo.planz.services.AccessObject;
 import pl.mo.planz.services.AccessService;
 import pl.mo.planz.services.IdentityService;
@@ -88,7 +88,7 @@ public class Controller {
     PermissionRepository profileRepository;
 
     @Autowired
-    ValueListRepository listRepository;
+    DatalistRepository listRepository;
 
     @Autowired
     FieldRepository fieldRepository;
@@ -112,7 +112,11 @@ public class Controller {
     AccessService accessService;
 
 
-
+    @GetMapping("favicon.ico")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void getFavicon() {
+        //TODO: favicon please
+    }
 
 
     private static Optional<DocumentModel> getCurrentDocument(DocumentRepository docRepo) {

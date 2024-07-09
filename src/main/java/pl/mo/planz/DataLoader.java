@@ -35,8 +35,8 @@ import pl.mo.planz.model.ProfileModel;
 import pl.mo.planz.model.SeriesModel;
 import pl.mo.planz.model.TemplateModel;
 import pl.mo.planz.model.TokenModel;
-import pl.mo.planz.model.ValueListItemModel;
-import pl.mo.planz.model.ValueListModel;
+import pl.mo.planz.model.DatalistValueModel;
+import pl.mo.planz.model.DatalistModel;
 import pl.mo.planz.repositories.DocumentRepository;
 import pl.mo.planz.repositories.IdentityRepository;
 import pl.mo.planz.repositories.PermissionRepository;
@@ -44,7 +44,7 @@ import pl.mo.planz.repositories.ProfileRepository;
 import pl.mo.planz.repositories.SeriesRepository;
 import pl.mo.planz.repositories.TemplateRepository;
 import pl.mo.planz.repositories.TokenRepository;
-import pl.mo.planz.repositories.ValueListRepository;
+import pl.mo.planz.repositories.DatalistRepository;
 import pl.mo.planz.services.AccessService;
 import pl.mo.planz.services.DocumentService;
 import pl.mo.planz.services.IdentityService;
@@ -58,7 +58,7 @@ public class DataLoader {
     private final TokenRepository tokenRepository;
     private final IdentityRepository identityRepository;
     private final PermissionRepository permissionRepository;
-    private final ValueListRepository listRepository;
+    private final DatalistRepository listRepository;
     private final Controller controller;
     private final TemplateController templateController;
     private final SeriesRepository seriesRepository;
@@ -230,7 +230,7 @@ public class DataLoader {
         return null;
     }
 
-    private void loadList(ValueListRepository listRepo, String resName, String name, UUID uuid) {
+    private void loadList(DatalistRepository listRepo, String resName, String name, UUID uuid) {
 
         // if (listRepository.findById(uuid).isPresent()) {
         //     System.out.println("List " + name + " already exists, skipped");
@@ -241,16 +241,21 @@ public class DataLoader {
             InputStream templateStream = this.getClass().getClassLoader().getResourceAsStream(resName);
             BufferedReader reader = new BufferedReader(new InputStreamReader(templateStream, StandardCharsets.UTF_8));
 
-            ValueListModel list = new ValueListModel();
+            DatalistModel list = new DatalistModel();
             //list.setId(uuid);
             list.setName(name);
-            list.setValues(new ArrayList<ValueListItemModel>());
+            list.setValues(new ArrayList<DatalistValueModel>());
             String line;
             
                 line = reader.readLine();
 
             while (line!=null){
-                list.addValue(line);
+
+                DatalistValueModel vli = new DatalistValueModel();
+                vli.setList(list);
+                vli.setValue(line);
+                list.getValues().add(vli);
+
                 line= reader.readLine();
             }
             listRepo.save(list);

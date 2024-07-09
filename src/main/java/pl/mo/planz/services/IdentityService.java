@@ -19,7 +19,7 @@ import pl.mo.planz.repositories.FieldRepository;
 import pl.mo.planz.repositories.IdentityRepository;
 import pl.mo.planz.repositories.PermissionRepository;
 import pl.mo.planz.repositories.ProfileAssignmentRepository;
-import pl.mo.planz.repositories.ValueListRepository;
+import pl.mo.planz.repositories.DatalistRepository;
 
 @Service
 public class IdentityService {

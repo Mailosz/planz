@@ -21,4 +21,8 @@ public class FieldDeclarationDTO {
     @Getter
     @Setter
     String name;
+
+    @Getter
+    @Setter
+    String datalist;
 }

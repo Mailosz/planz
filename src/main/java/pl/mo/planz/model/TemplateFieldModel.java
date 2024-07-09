@@ -46,7 +46,7 @@ public class TemplateFieldModel {
     @ManyToOne
     @Getter
     @Setter
-    ValueListModel datalist;
+    DatalistModel datalist;
 
     @ManyToOne
     @Getter

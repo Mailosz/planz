@@ -1,4 +1,3 @@
-
 export class DocBuilder {
 
     /**
@@ -10,18 +9,25 @@ export class DocBuilder {
      * 
      * @param {Document} document 
      */
-    constructor(document) {
-        this.#doc = document;
+    constructor(doc) {
+        if (doc == null) {
+            doc = window.document;
+        }
+        this.#doc = doc;
     }
 
     /**
-     * 
+     * Creates new tag builder
      * @returns {TagBuilder}
      */
     tag(tagname, options) {
         return new TagBuilder(this.#doc.createElement(tagname, options));
     }
 
+    /**
+     * Creates new text node
+     * @returns {Text}
+     */
     text(text) {
         return this.#doc.createTextNode(text);
     }
@@ -31,13 +37,17 @@ export class DocBuilder {
         return new TagBuilder(this.#doc.body);
     }
 
+    getDocument() {
+        return this.#doc;
+    }
+
 }
 
 
 
 
 
-class TagBuilder {
+export class TagBuilder {
 
     /**
      * @type {Element}
@@ -49,8 +59,9 @@ class TagBuilder {
     }
 
     /**
-     * Sets te id
-     * @param {*} id 
+     * Sets the tag's id
+     * @param {string} id 
+     * @returns {TagBuilder}
      */
     id(id) {
         this.#tag.id = id;
@@ -59,9 +70,9 @@ class TagBuilder {
     }
 
     /**
-     * Appends CSS className
-     * @param {*} className 
-     * @returns 
+     * Appends CSS class name(s)
+     * @param {...string} className 
+     * @returns {TagBuilder}
      */
     class(className) {
         this.#tag.classList.add(className);
@@ -71,8 +82,8 @@ class TagBuilder {
 
     /**
      * Sets the classname
-     * @param {*} className 
-     * @returns 
+     * @param {string} className 
+     * @returns {TagBuilder}
      */
     className(className) {
         this.#tag.className = className;
@@ -83,7 +94,8 @@ class TagBuilder {
     /**
      * Sets the given attribute
      * @param {string} name 
-     * @param {*} value 
+     * @param {string} value 
+     * @returns {TagBuilder}
      */
     attr(name, value) {
         this.#tag.setAttribute(name, value);
@@ -94,6 +106,7 @@ class TagBuilder {
     /**
      * Sets the innerHTML
      * @param {*} html 
+     * @returns {TagBuilder}
      */
     innerHTML(html) {
         this.#tag.innerHTML = html;
@@ -104,6 +117,7 @@ class TagBuilder {
     /**
      * Sets the innerText
      * @param {*} html 
+     * @returns {TagBuilder}
      */
     innerText(text) {
         this.#tag.innerText = text;
@@ -114,6 +128,7 @@ class TagBuilder {
     /**
      * Appends children to the end of element
      * @param {...Node} children 
+     * @returns {TagBuilder}
      */
     children(...children) {
 
@@ -125,6 +140,7 @@ class TagBuilder {
     /**
      * Adds event listener to the tag
      * @param {Function} children 
+     * @returns {TagBuilder}
      */
     event(name, listener, options) {
 
@@ -135,7 +151,8 @@ class TagBuilder {
 
     /**
      * Invokes arbitrary function on the tag
-     * @param {Function} children 
+     * @param {Function} func  funtion to invoke taking one parameter: the element itself
+     * @returns {TagBuilder}
      */
     invoke(func) {
 
@@ -144,9 +161,10 @@ class TagBuilder {
         return this;
     }
 
-    /**
+     /**
      * Invokes arbitrary function for every child of the tag
-     * @param {Function} func 
+     * @param {Function} func  funtion to invoke taking one parameter: the element itself
+     * @returns {TagBuilder}
      */
     forEveryChild(func) {
 
@@ -159,12 +177,34 @@ class TagBuilder {
         return this;
     }
 
-
+    /**
+     * Get the built HTML element
+     * @type {Element}
+     */
     getTag() {
+        return this.#tag;
+    }
+    /**
+     * Get the built HTML element
+     * @type {Element}
+     */
+    get() {
+        return this.#tag;
+    }
+    /**
+     * Get the built HTML element
+     * @type {Element}
+     */
+    getElement() {
         return this.#tag;
     }
 }
 
+/**
+ * Executes function for every tag; if tag is a tagbuilder then it builds it (executes getTag)
+ * @param {*} tags 
+ * @param {*} func 
+ */
 function forEveryTag(tags, func) {
     for (const tag of tags) {
         let elem = null;
