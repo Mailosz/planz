@@ -199,3 +199,22 @@
         display: none;
     }
 }
+
+
+.generate-new-page {
+    margin-top: 20vh;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    
+}
+.generate-button {
+    border: none;
+    color: green;
+    padding: 20px;
+}
+.generate-button::before {
+    content: '+';
+    font-size: xx-large;
+    display: block;
+}

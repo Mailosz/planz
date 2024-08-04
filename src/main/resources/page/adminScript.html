@@ -1,7 +1,7 @@
 <script type="module">
     import {PlacementHelper} from '/js/utils/PlacementHelper.js';
-    import {Popup} from './js/ui/Popup.js';
-    import {DocBuilder} from './js/utils/DocBuilder.js';
+    import {Popup} from '/js/ui/Popup.js';
+    import {DocBuilder} from '/js/utils/DocBuilder.js';
 
     window.placeElement = (element, anchor, placement, options) => {
         PlacementHelper.computePosition(element, anchor, placement, options);
@@ -374,6 +374,7 @@
 
         }).catch((error) => {
             showResultPopup("fail-popup", "Błąd otwierania ( " + error + " )");
+            console.error(error);
         });
 
 
@@ -451,9 +452,39 @@
             popup.show(null, "center center");
         }).catch((error) => {
             showResultPopup("fail-popup", "Błąd otwierania ( " + error + " )");
+            console.error(error);
         });
 
 
     }
-    
+
+    function createNewDocument(seriesId, token) {
+        createNewDocument(seriesId, token, false);
+    }
+
+    function createNewDocument(seriesId, token, after) {
+        let url = "/documents/create/" + seriesId + "?token=" + token;
+        if (after) {
+            url += "&after=" + after;
+        }
+        let request = new Request(url, {
+            method: "POST",
+        });
+
+        fetch(request).then((resp) => {
+            console.log(resp);
+            if (resp.ok) {
+                return resp.json();
+            } else {
+                throw resp.status;
+            }
+        }).then((uuid) => {
+            location.replace("/edit/" + token + "/" + uuid );
+        }).catch((error) => {
+            //showResultPopup("fail-popup", "Nie udało się utworzyć dokumentu ( " + error + " )");
+            console.log(error)
+        });
+
+    }
+
 </script>

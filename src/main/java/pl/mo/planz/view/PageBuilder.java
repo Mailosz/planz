@@ -11,6 +11,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -35,10 +36,13 @@ import pl.mo.planz.repositories.TemplateRepository;
 @Component
 public class PageBuilder {
 
-    static String htmlStart = loadResource("page/htmlstart.html");
     static String htmlEnd = "</body></html>";
-    static String editScript = loadResource("page/editScript.html");
-    static String adminScript = loadResource("page/adminScript.html");
+
+    static String htmlStartUrl = "page/htmlStart.html";
+    static String editScriptUrl = "page/editScript.html";
+    static String adminScriptUrl = "page/adminScript.html";
+
+    static Map<String,String> resources = new HashMap<String,String>();
 
     
     public static String loadResource(String resource) {
@@ -88,7 +92,7 @@ public class PageBuilder {
                 content += "<span id=\"doc-changed-label\">&ensp;Dokument zawiera niezapisane zmiany</span>";
             }
             content += "</div>";
-            content += adminScript;
+            content += appendResource(adminScriptUrl);
         
         return content;
     }
@@ -106,9 +110,19 @@ public class PageBuilder {
         return sb.toString();
     }
 
+    private String appendResource(String url) {
+        if (resources.containsKey(url)) {
+            return resources.get(url);
+        } else {
+            var resource = loadResource(url);
+            resources.put(url, resource);
+            return resource;
+        }
+    }
+
 
     public  String buildCreatePage(SeriesModel series, String token) {
-        String content = htmlStart; 
+        String content = appendResource(htmlStartUrl); 
 
         String prev = null;
         if (series.getLastDocument() != null) {
@@ -119,9 +133,17 @@ public class PageBuilder {
 
         content += """
                 <div id=\"doc-container\" class=\"page\">
-                <button>Utwórz nowy dokument</button>
+                    <div class="generate-new-page">
+                    <h1>%s</h1>
+                    <p>Brak nowych dokumentów</p>
+                        <button class="generate-button" onclick="createNewDocument('%s','%s');">Utwórz nowy dokument</button>
+                    </div>
                 </div>
-                """;
+                """.formatted(series.getName(), series.getId(), token);
+                
+        content += hiddenInput("token-input", token);
+        content += appendResource(editScriptUrl);
+        content += appendResource(adminScriptUrl);
         content += htmlEnd;
         return content;
     }
@@ -133,7 +155,7 @@ public class PageBuilder {
     public String buildPage(boolean isAdmin, boolean isEdit, DocumentModel doc, String token, boolean containsChanges, String content) {
         
         StringBuilder sb = new StringBuilder();
-        sb.append(htmlStart);
+        sb.append(appendResource(htmlStartUrl));
 
         if (isAdmin) {
             sb.append(buildAdminMenu(doc, containsChanges));
@@ -144,21 +166,21 @@ public class PageBuilder {
         String prev = null;
         if (isAdmin || isEdit) {
             if (doc.getNext() != null) {
-                next = getDocumentAddress(token, doc.getNext());
+                next = "/edit/" + getDocumentAddress(token, doc.getNext());
             } else { // link to create page
                 next = "/create/" + token;
             }
 
             if (doc.getPrev() != null) {
-                prev = getDocumentAddress(token, doc.getPrev());
+                prev = "/edit/" + getDocumentAddress(token, doc.getPrev());
             }
         } else {
             if (doc.getNext() != null && doc.getNext().isPublic()) {
-                next = getDocumentAddress(token, doc.getNext());
+                next = "/view/" + getDocumentAddress(token, doc.getNext());
             }
 
             if (doc.getPrev() != null && doc.getPrev().isPublic()) {
-                prev = getDocumentAddress(token, doc.getPrev());
+                prev = "/view/" + getDocumentAddress(token, doc.getPrev());
             }
         }
 
@@ -182,17 +204,20 @@ public class PageBuilder {
         sb.append("</div>");
 
         if (isAdmin || isEdit) {
-            sb.append(editScript);
+            sb.append(appendResource(editScriptUrl));
         }
         sb.append(htmlEnd);
 
         return sb.toString();
     }
 
+    static String hiddenInput(String id, String value) {
+        return "<input type=\"hidden\" id=" + id + " value=\"" + value + "\">";
+    }
+
     public static Pair<String, Boolean> buildDocumentForEdit(DocumentModel docModel, Map<String, FieldValueModel> valueMap, Set<String> profiles, String token) {
 
-        String helpInputs = "<input type=\"hidden\" id=\"token-input\" value=\"" + token + "\">"
-            + "<input type=\"hidden\" id=\"document-id-input\" value=\"" + docModel.getId() + "\">";
+        String helpInputs = hiddenInput("token-input", token) + hiddenInput("document-id-input", docModel.getId().toString());
 
         if (docModel.getGeneratedTime() != null) {
             helpInputs += "<input type=\"hidden\" id=\"document-gen-time\" value=\"" + docModel.getGeneratedTime().toString() + "\";>";

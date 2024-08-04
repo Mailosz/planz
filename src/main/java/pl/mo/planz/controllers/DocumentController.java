@@ -107,11 +107,10 @@ public class DocumentController {
     }
 
     @PostMapping(value="documents/create/{seriesId}")
-    public UUID postDocument(@PathVariable("seriesId") UUID seriesId, @RequestParam(name = "token", required = false) String token) {
+    public UUID createDocument(@PathVariable("seriesId") UUID seriesId, @RequestParam(name = "token", required = false) String token) {
 
         //"security"
         accessService.adminOrThrow(token);
-
 
         Optional<SeriesModel> seriesOpt = seriesRepository.findById(seriesId);
 
