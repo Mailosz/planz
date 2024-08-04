@@ -13,10 +13,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
 @Entity
+@Table(name = "profile_assignment")
 public class ProfileAssignmentModel {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

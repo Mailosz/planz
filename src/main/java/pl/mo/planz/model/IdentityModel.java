@@ -14,10 +14,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
 @Entity
+// @Table(name = "identity_model")
 public class IdentityModel {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

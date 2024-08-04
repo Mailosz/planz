@@ -11,10 +11,12 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
 @Entity
+@Table(name = "profile")
 public class ProfileModel {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -26,6 +28,11 @@ public class ProfileModel {
     @Setter
     @Column(unique = true)
     String name;
+
+    @Getter
+    @Setter
+    @Column(unique = true)
+    String description;
 
     @ManyToMany
     @Getter

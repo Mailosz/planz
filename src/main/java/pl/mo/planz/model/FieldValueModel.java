@@ -16,12 +16,15 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
 @Entity
+@Table(name = "field_value")
 public class FieldValueModel {
 
     @Id
@@ -51,10 +54,12 @@ public class FieldValueModel {
     String value;
 
     @ManyToOne
+    @JoinColumn(comment = "Who last edited the current value")
     @Getter
     @Setter
     IdentityModel editIdentity;
     
+    @Column(comment = "When was the current value last edited")
     @Getter
     @Setter
     Instant editTime;
