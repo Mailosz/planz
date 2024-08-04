@@ -23,6 +23,7 @@ import pl.mo.planz.TemplateParser;
 import pl.mo.planz.TemplateParsingException;
 import pl.mo.planz.dto.TemplateFieldDTO;
 import pl.mo.planz.model.FieldType;
+import pl.mo.planz.model.PermissionModel;
 import pl.mo.planz.model.TemplateFieldModel;
 import pl.mo.planz.model.TemplateModel;
 import pl.mo.planz.repositories.DocumentRepository;
@@ -42,7 +43,7 @@ public class TemplateController {
     TemplateRepository templateRepository;
 
     @Autowired
-    PermissionRepository profileRepository;
+    PermissionRepository permissionRepository;
 
     @Autowired
     DatalistRepository listRepository;
@@ -68,9 +69,11 @@ public class TemplateController {
             for (var oldField : oldFields) {
                 oldField.setTemplate(null);
             }
+        } else {
+            oldFields = new ArrayList<>();
         }
 
-        if (oldFields == null) oldFields = new ArrayList<>();
+
         List<TemplateFieldDTO> foundFields = tp.getFields();
         List<TemplateFieldModel> newFields = new ArrayList<>(foundFields.size());
         for (var field : foundFields) {
@@ -95,14 +98,16 @@ public class TemplateController {
             tfm.setPublic(Optional.ofNullable(field.getIsPublic()).orElse(false));
 
             if (field.getEdit() != null) {
-                var opt = profileRepository.findByName(field.getEdit());
+                var opt = permissionRepository.findByName(field.getEdit());
                 if (opt.isPresent()) {
-                    tfm.setEditProfile(opt.get());
+                    tfm.setEditPermission(opt.get());
                 } else {
-                    throw new TemplateParsingException("No profile: " + field.getEdit());
+                    var permission = createPermission(field.getEdit());
+                    tfm.setEditPermission(permission);
+                    // throw new TemplateParsingException("No profile: " + field.getEdit());
                 }
             } else {
-                tfm.setEditProfile(null);
+                tfm.setEditPermission(null);
             }
 
             if (field.getList() != null) {
@@ -137,6 +142,15 @@ public class TemplateController {
         // }
 
         templateRepository.save(tm);
+    }
+
+    private PermissionModel createPermission(String name) {
+        var permission = new PermissionModel();
+        permission.setName(name);
+        permission.setDescription("Uprawnienie do edycji pola '" + name + "'");
+
+        permissionRepository.save(permission);
+        return permission;
     }
 
     @Transactional
@@ -244,9 +258,9 @@ public class TemplateController {
             sb.append("|list=");
             sb.append(field.getDatalist().getName());
         }
-        if (field.getEditProfile() != null) {
+        if (field.getEditPermission() != null) {
             sb.append("|edit=");
-            sb.append(field.getEditProfile().getName());
+            sb.append(field.getEditPermission().getName());
         }
         if (field.isPublic()) {
             sb.append("|public=true");

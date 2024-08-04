@@ -53,7 +53,7 @@ public class TemplateFieldModel {
     @ManyToOne
     @Getter
     @Setter
-    PermissionModel editProfile;
+    PermissionModel editPermission;
 
     @Column(length = 1000000)
     @Getter

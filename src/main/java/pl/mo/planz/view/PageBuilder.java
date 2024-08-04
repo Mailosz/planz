@@ -215,7 +215,7 @@ public class PageBuilder {
         return "<input type=\"hidden\" id=" + id + " value=\"" + value + "\">";
     }
 
-    public static Pair<String, Boolean> buildDocumentForEdit(DocumentModel docModel, Map<String, FieldValueModel> valueMap, Set<String> profiles, String token) {
+    public static Pair<String, Boolean> buildDocumentForEdit(DocumentModel docModel, Map<String, FieldValueModel> valueMap, Set<String> userPermissions, String token) {
 
         String helpInputs = hiddenInput("token-input", token) + hiddenInput("document-id-input", docModel.getId().toString());
 
@@ -226,7 +226,7 @@ public class PageBuilder {
         List<TemplateFieldModel> fields = docModel.getTemplate().getFields();
         fields.sort((f1, f2) -> Integer.compare(f2.getPos(), f1.getPos()));
 
-        boolean isAdmin = profiles.contains("admin");
+        boolean isAdmin = userPermissions.contains("admin");
         boolean anythingChanged = false;
 
         //building template
@@ -243,7 +243,7 @@ public class PageBuilder {
                 listname = "list=\"" + field.getDatalist().getName() + "\"";
             }
 
-            if (!isAdmin && (field.getEditProfile() == null || !profiles.contains(field.getEditProfile().getName()))) { // just value
+            if (!isAdmin && (field.getEditPermission() == null || !userPermissions.contains(field.getEditPermission().getName()))) { // just value
 
                 String staticValue = getStaticValue(field, docModel, valueMap);
 

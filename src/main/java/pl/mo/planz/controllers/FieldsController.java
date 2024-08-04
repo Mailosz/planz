@@ -84,7 +84,7 @@ public class FieldsController {
     FieldValueRepository fieldValueRepository;
 
     @Autowired
-    PermissionRepository profileRepository;
+    PermissionRepository permissionRepository;
 
     @Autowired
     DatalistRepository listRepository;
@@ -117,7 +117,7 @@ public class FieldsController {
         if (!identity.isPresent()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
-        Set<String> permissions = access.getPermissions();
+        Set<String> userPermissions = access.getPermissions();
 
 
         //TODO: get list and remove duplicates
@@ -143,8 +143,10 @@ public class FieldsController {
             model = newFieldValueModel(doc, field);
         }
         
-        if (!permissions.contains("admin") && (!model.getDocument().isEditable() || model.getField().getEditProfile() == null || !permissions.contains(model.getField().getEditProfile().getName()))) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        if (!userPermissions.contains("admin")) {
+            if (!model.getDocument().isEditable() || model.getField().getEditPermission() == null || !userPermissions.contains(model.getField().getEditPermission().getName())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+            }
         }
 
 
@@ -202,6 +204,10 @@ public class FieldsController {
         dto.setType(model.getType());
         dto.setValue(model.getValue());
         dto.setDefaultValue(model.getField().getDefaultValue());
+        if (model.getField().getEditPermission() != null) {
+            dto.setEditPermission(model.getField().getEditPermission().getName());
+            dto.setEligibleEditors(permissionRepository.findIdentitiesWithPermission(model.getDocument().getSeries(), model.getField().getEditPermission()).stream().map((identity) -> identity.getName()).toList());
+        }
         if (model.getField().getDatalist() != null) {
             dto.setDatalist(model.getField().getDatalist().getName());
         }

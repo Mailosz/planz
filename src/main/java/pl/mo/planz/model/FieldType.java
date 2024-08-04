@@ -1,5 +1,36 @@
 package pl.mo.planz.model;
 
 public enum FieldType {
-    TEXT, CODE, LIST, AUTO, COPY, COMP, HIDDEN
+    /**
+     * Pole tekstowe
+     */
+    TEXT,
+    /**
+     * Kod HTML
+     */
+    CODE, 
+    /**
+     * Wartość z listy
+     */
+    LIST, 
+    /**
+     * Pole automatyczne
+     */
+    AUTO, 
+    /**
+     * Wartość kopiowana z innego pola
+     */
+    COPY, 
+    /**
+     * Pole skryptowe
+     */
+    COMP, 
+    /**
+     * Pole niewidoczne
+     */
+    HIDDEN, 
+    /**
+     * Część dokumentu zawierająca wewnętrzne pola
+     */
+    PART
 }

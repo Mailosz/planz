@@ -63,6 +63,7 @@
     }
 
     function templateChange(event) {
+        updateStatusIndicator("wait");
         fetch("/documents/" + docId + "/change/template/" + event.target.options[event.target.selectedIndex].value + "?token=" + token).then((resp) => {
             if (resp.ok) {
                 return resp.text();
@@ -71,12 +72,14 @@
             }
         }).then((text) => {
             if (text == "true") {
+                updateStatusIndicator("success");
                 location.reload();
             } else {
                 throw "no nie";
             }
         }).catch((err) => {
             showResultPopup("fail-popup", "Błąd");
+            updateStatusIndicator("error");
         });
     }
 
@@ -114,7 +117,7 @@
 
             
             if (Array.isArray(json) && json.length > 0) {
-                let teble = builder.tag("table");
+                let table = builder.tag("table");
                 table.children(
                         builder.tag("tr").children(
                             builder.tag("th").innerText("Wartość"),
@@ -273,6 +276,10 @@
         });
     }
 
+    function showFieldEditPermissions(fieldId) {
+        
+    }
+
     function showAdminPopup(fieldId, valueId, event) {
         console.log("FieldId: " + fieldId);
         console.log("ValueId: " + valueId);
@@ -321,7 +328,8 @@
                         builder.tag("option").attr("value", "CODE").innerText("Kod"),
                         builder.tag("option").attr("value", "AUTO").innerText("Pole automatyczne"),
                         builder.tag("option").attr("value", "COPY").innerText("Kopiuj"),
-                        builder.tag("option").attr("value", "COMP").innerText("Kompilowane")
+                        builder.tag("option").attr("value", "COMP").innerText("Kompilowane"),
+                        builder.tag("option").attr("value", "HIDDEN").innerText("Ukryte")
                     ).forEveryChild((el) => {if (json.type == el.value) el.selected = true; })
                 ),
                 builder.tag("div").class("admin-popup-row").attr("style", "text-align: right;").children(
@@ -342,7 +350,14 @@
                     })
                 ),
                 builder.tag("div").class("admin-popup-row").children(
-                    builder.tag("button").innerText("Zapisz").event("click", (event) => {
+                    builder.tag("span").innerText("Uprawnienia do edycji: "),
+                    builder.tag("span").innerText(json.editPermission + (json.eligibleEditors?" ("+ json.eligibleEditors.join(", ") +")":"")),
+                    builder.tag("button").innerText("Zmień").event("click", (event) => {
+                        showFieldEditPermissions(fieldId);
+                    })
+                ),
+                builder.tag("div").class("admin-popup-row").children(
+                    builder.tag("button").innerText("Zapisz").class("admin-popup-save-button").event("click", (event) => {
                         let popup = Popup.getPopupOfElement(event.target);
                         //send field update
                         let request = new Request(url, {

@@ -218,3 +218,10 @@
     font-size: xx-large;
     display: block;
 }
+
+.admin-popup-save-button {
+    margin: auto;
+    display: block;
+    padding: 1em 2em;
+    border: none;
+}
