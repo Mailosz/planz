@@ -54,12 +54,12 @@ public class FieldValueModel {
     String value;
 
     @ManyToOne
-    @JoinColumn(comment = "Who last edited the current value")
+    // @JoinColumn(comment = "Who last edited the current value")
     @Getter
     @Setter
     IdentityModel editIdentity;
     
-    @Column(comment = "When was the current value last edited")
+    // @Column(comment = "When was the current value last edited")
     @Getter
     @Setter
     Instant editTime;
