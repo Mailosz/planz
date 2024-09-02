@@ -5,13 +5,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.Period;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjusters;
 import java.time.temporal.TemporalAmount;
+import java.time.temporal.TemporalField;
 import java.time.temporal.TemporalUnit;
+import java.time.temporal.WeekFields;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -133,8 +137,8 @@ public class DataLoader {
 
 
 
-        documentService.createForSeries(defaultSeries);
-        documentService.createForSeries(secondSeries);
+        documentService.createForSeries(defaultSeries, LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)));
+        documentService.createForSeries(secondSeries, LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)));
 
 
 

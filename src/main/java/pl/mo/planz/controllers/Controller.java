@@ -137,15 +137,15 @@ public class Controller {
         DocumentModel current = null;
         long diff = 0;
         for (var doc : docs) {
-            if (now.isEqual(doc.getWeek()) || (now.isAfter(doc.getWeek()) && now.isBefore(doc.getWeek().plusDays(7)))) {
+            if (now.isEqual(doc.getDate()) || (now.isAfter(doc.getDate()) && now.isBefore(doc.getDate().plusDays(7)))) {
                 //perfect match
                 current = doc;
                 break;
             } else if (current == null) {
                 current = doc;
-                diff = Math.abs(ChronoUnit.DAYS.between(now, doc.getWeek()));
+                diff = Math.abs(ChronoUnit.DAYS.between(now, doc.getDate()));
             } else {
-                long d = Math.abs(ChronoUnit.DAYS.between(now, doc.getWeek()));
+                long d = Math.abs(ChronoUnit.DAYS.between(now, doc.getDate()));
                 if (d < diff) {
                     current = doc;
                     diff = d;

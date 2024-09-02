@@ -27,7 +27,7 @@ public class DocumentGenerator {
         List<DocumentModel> docs = docRepo.findAll();
 
         for (var doc : docs) {
-            if (doc.getWeek().isBefore(minimumDate)) {
+            if (doc.getDate().isBefore(minimumDate)) {
                 if (doc.getNext() != null) {
                     doc.getNext().setPrev(null);
                     docRepo.save(doc.getNext());
@@ -52,7 +52,7 @@ public class DocumentGenerator {
                 doc = docRepo.save(doc);
                 docRepo.delete(doc);
 
-                System.out.println("Document ID: " + doc.getId().toString() + " of " +  doc.getWeek().toString() + " removed");
+                System.out.println("Document ID: " + doc.getId().toString() + " of " +  doc.getDate().toString() + " removed");
             }
         }
 
@@ -108,7 +108,7 @@ public class DocumentGenerator {
             DocumentModel previous = null;
             for (var week : weeks) {
 
-                var docOpt = docs.stream().filter((d) -> d.getWeek().isEqual(week)).findFirst();
+                var docOpt = docs.stream().filter((d) -> d.getDate().isEqual(week)).findFirst();
                 DocumentModel doc;
                 if (docOpt.isPresent()) { // setting next and prev weeks on every document
 
@@ -125,7 +125,7 @@ public class DocumentGenerator {
                 } else { // create new document
                     doc = new DocumentModel();
 
-                    doc.setWeek(week);
+                    doc.setDate(week);
                     doc.setTemplate(defaultTemplate);
                     doc.setSeries(series);
 

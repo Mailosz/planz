@@ -194,7 +194,7 @@ public class PageBuilder {
 
             // go to current week
             var now = LocalDate.now();
-            if (now.isBefore(doc.getWeek()) || now.isAfter(doc.getWeek().plusWeeks(1))) {
+            if (now.isBefore(doc.getDate()) || now.isAfter(doc.getDate().plusWeeks(1))) {
                 sb.append("<a href=\".?token=" + token + "\" class=\"goto-current-week\"></a>");
             }
         }
@@ -373,7 +373,7 @@ public class PageBuilder {
     private static String getFieldAutoValue(DocumentModel doc, String name) {
         
         return switch (name) {
-            case "tydzien-od" -> doc.getWeek().getDayOfMonth() + " " + switch (doc.getWeek().getMonthValue()) {
+            case "tydzien-od" -> doc.getDate().getDayOfMonth() + " " + switch (doc.getDate().getMonthValue()) {
                 case 1 -> "stycznia";
                 case 2 -> "lutego";
                 case 3 -> "marca";
@@ -388,13 +388,13 @@ public class PageBuilder {
                 case 12 -> "grudnia";
                 default -> "";
             };
-            case "poniedziałek" -> doc.getWeek().plus(0, ChronoUnit.DAYS).format(dateFormattter);
-            case "wtorek" -> doc.getWeek().plus(1, ChronoUnit.DAYS).format(dateFormattter);
-            case "środa" -> doc.getWeek().plus(2, ChronoUnit.DAYS).format(dateFormattter);
-            case "czwartek" -> doc.getWeek().plus(3, ChronoUnit.DAYS).format(dateFormattter);
-            case "piątek" -> doc.getWeek().plus(4, ChronoUnit.DAYS).format(dateFormattter);
-            case "sobota" -> doc.getWeek().plus(5, ChronoUnit.DAYS).format(dateFormattter);
-            case "niedziela" -> doc.getWeek().plus(6, ChronoUnit.DAYS).format(dateFormattter);
+            case "poniedziałek" -> doc.getDate().plus(0, ChronoUnit.DAYS).format(dateFormattter);
+            case "wtorek" -> doc.getDate().plus(1, ChronoUnit.DAYS).format(dateFormattter);
+            case "środa" -> doc.getDate().plus(2, ChronoUnit.DAYS).format(dateFormattter);
+            case "czwartek" -> doc.getDate().plus(3, ChronoUnit.DAYS).format(dateFormattter);
+            case "piątek" -> doc.getDate().plus(4, ChronoUnit.DAYS).format(dateFormattter);
+            case "sobota" -> doc.getDate().plus(5, ChronoUnit.DAYS).format(dateFormattter);
+            case "niedziela" -> doc.getDate().plus(6, ChronoUnit.DAYS).format(dateFormattter);
             default -> "";
         };
     }

@@ -14,6 +14,10 @@ public class FieldDeclarationDTO {
 
     @Getter
     @Setter
+    String template;
+
+    @Getter
+    @Setter
     String defaultValue;
 
     @Getter

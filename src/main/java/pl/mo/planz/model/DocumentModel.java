@@ -35,7 +35,7 @@ public class DocumentModel {
 
     @Getter
     @Setter
-    LocalDate week;
+    LocalDate date;
 
     @ManyToOne
     @Getter

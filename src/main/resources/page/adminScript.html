@@ -146,7 +146,7 @@
         });
     }
 
-    function showDatalistPopup(fieldId) {
+    function showDatalistPopup(fieldTemplateId) {
         const builder = document.builder;
 
         let datalistUrl = "/datalist?token=" + token;
@@ -178,17 +178,24 @@
                 for (let row of json) {
                     table.children(
                         builder.tag("tr").children(
-                            builder.tag("td").children(builder.tag("button").innerText("Wybierz")),
+                            builder.tag("td").children(builder.tag("button").innerText("Wybierz").event("click", (event) => {
+                                chooseDatalist(row.id, fieldTemplateId, event.target)
+                            })),
                             builder.tag("td").innerText(row.name),
                             builder.tag("td").innerText(row.description),
                             builder.tag("td").children(builder.tag("button").innerText("Edytuj").event("click", (event) => {
-                                showDatalistEditPopup(row.id)
+                                showDatalistEditPopup(row.id, row.name, row.description)
                             }))
                         )
                     )
                 }
-
             } 
+
+            table.children(
+                builder.tag("td").children(builder.tag("button").innerText("Bez listy wartości").event("click", (event) => {
+                    chooseDatalist(null, fieldTemplateId, event.target)
+                })),
+            )
 
             let popup = new Popup(table.getTag(), {});
             popup.show(null, "center center");
@@ -196,7 +203,29 @@
         });
     }
 
-    function showDatalistEditPopup(datalistId) {
+    function chooseDatalist(listId, fieldTemplateId, eventTargetToClosePopup) {
+        let url = "/field-templates/" + fieldTemplateId + "?token=" + token;
+        let request = new Request(url, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                datalist: (listId===null?"null":listId)
+            })
+        });
+        fetch(request).then((resp) => {
+            if (resp.ok) {
+                showResultPopup("success-popup", "Wykonano");
+                Popup.getPopupOfElement(eventTargetToClosePopup).hide();
+            } else {
+                showResultPopup("fail-popup", "Błąd");
+            }
+            console.log(resp);
+        });
+    }
+
+    function showDatalistEditPopup(datalistId, name, desc) {
         const builder = document.builder;
 
         let datalistUrl = "/datalist/" + datalistId + "?token=" + token;
@@ -213,7 +242,14 @@
         }).then((json) => {
 
             let content = builder.tag("div"); 
-            content.children(builder.tag("h1").innerText("Edycja listy wartości"));
+
+            let descriptionTB = builder.tag("textarea").innerText(desc)
+            content.children(
+                builder.tag("h1").innerText(name),
+                builder.tag("div").innerText(desc),
+                builder.tag("button").innerText("Zmień nazwę"),
+                builder.tag("button").innerText("Edytuj opis"),
+            );
 
             let list = builder.tag("div");
             content.children(list);
@@ -346,7 +382,7 @@
                     builder.tag("span").innerText("Lista podpowiedzi: "),
                     builder.tag("span").innerText(json.datalist),
                     builder.tag("button").innerText("Zmień").event("click", (event) => {
-                        showDatalistPopup(fieldId);
+                        showDatalistPopup(json.template);
                     })
                 ),
                 builder.tag("div").class("admin-popup-row").children(
@@ -394,6 +430,8 @@
 
 
     }
+
+    
 
 
     /**

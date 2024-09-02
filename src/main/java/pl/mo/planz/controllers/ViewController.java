@@ -182,7 +182,7 @@ public class ViewController {
             }
             DocumentModel doc = opt.get();
 
-            if (doc.getNext() != null && LocalDate.now().isAfter(doc.getNext().getWeek())) {
+            if (doc.getNext() != null && LocalDate.now().isAfter(doc.getNext().getDate())) {
                 var foundOpt = documentService.findCurrentDocument(series);
                 if (foundOpt.isPresent()) {
                     currentDocumentMap.put(series.getId(), foundOpt.get().getId());
@@ -288,7 +288,7 @@ public class ViewController {
     private DocumentDTO docModelToDto(DocumentModel model) {
         DocumentDTO dto = new DocumentDTO();
         dto.setTemplateId(model.getTemplate().getId());
-        dto.setWeek(model.getWeek());
+        dto.setWeek(model.getDate());
         dto.setId(model.getId());
 
         return dto;
@@ -296,7 +296,7 @@ public class ViewController {
 
     private DocumentModel docDtoToModel(DocumentDTO dto) {
         DocumentModel model = new DocumentModel();
-        model.setWeek(dto.getWeek());
+        model.setDate(dto.getWeek());
         model.setTemplate(templateRepository.getReferenceById(dto.getTemplateId()));
 
         return model;

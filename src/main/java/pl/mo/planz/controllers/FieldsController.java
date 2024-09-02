@@ -103,6 +103,9 @@ public class FieldsController {
 
     @Autowired
     AccessService accessService;
+
+    @Autowired
+    DatalistRepository datalistRepository;
     
 
 
@@ -204,6 +207,7 @@ public class FieldsController {
         dto.setType(model.getType());
         dto.setValue(model.getValue());
         dto.setDefaultValue(model.getField().getDefaultValue());
+        dto.setTemplate(model.getField().getId().toString());
         if (model.getField().getEditPermission() != null) {
             dto.setEditPermission(model.getField().getEditPermission().getName());
             dto.setEligibleEditors(permissionRepository.findIdentitiesWithPermission(model.getDocument().getSeries(), model.getField().getEditPermission()).stream().map((identity) -> identity.getName()).toList());
@@ -254,6 +258,32 @@ public class FieldsController {
         }
     }
 
+    @PutMapping(value="field-templates/{fieldId}", consumes = {"application/json"})
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @ResponseStatus(code = HttpStatus.OK)
+    public void updateFieldTemplate(@PathVariable("fieldId") UUID fieldId, @RequestParam("token") String token, @RequestBody(required = true) FieldDeclarationDTO opts) {
+
+        accessService.adminOrThrow(token);
+
+
+        var model = fieldRepository.findById(fieldId).get();
+
+        //change
+        if (opts.getType() != null) {
+            model.setType(opts.getType());
+        }
+        if (opts.getDatalist() != null) {
+            if ("null".equalsIgnoreCase(opts.getDatalist())) {
+                model.setDatalist(null);
+            } else {
+                var datalist = datalistRepository.findById(UUID.fromString(opts.getDatalist())).get();
+
+                model.setDatalist(datalist);
+            }
+        }
+
+        fieldRepository.save(model);
+    }
 
     @GetMapping(value="history/{docId}/{fieldId}")
     public List<HistoryItemDTO> getHistory(@PathVariable("docId") UUID docId, @PathVariable("fieldId") UUID fieldId, @RequestParam("token") String token) {

@@ -12,7 +12,7 @@ import pl.mo.planz.model.DocumentModel;
 
 public interface DocumentRepository extends JpaRepository<DocumentModel, UUID>{
     
-    @Query("select doc from DocumentModel doc where doc.week < ?1 order by doc.week desc")
+    @Query("select doc from DocumentModel doc where doc.date < ?1 order by doc.date desc")
     Optional<DocumentModel> findCurrentForDate(LocalDate date);
 
     List<DocumentModel> findDocumentsBySeriesId(UUID seriesId);

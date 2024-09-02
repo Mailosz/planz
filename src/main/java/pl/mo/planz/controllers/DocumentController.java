@@ -92,7 +92,7 @@ public class DocumentController {
     private DocumentDTO docModelToDto(DocumentModel model) {
         DocumentDTO dto = new DocumentDTO();
         dto.setTemplateId(model.getTemplate().getId());
-        dto.setWeek(model.getWeek());
+        dto.setWeek(model.getDate());
         dto.setId(model.getId());
 
         return dto;
@@ -100,7 +100,7 @@ public class DocumentController {
 
     private DocumentModel docDtoToModel(DocumentDTO dto) {
         DocumentModel model = new DocumentModel();
-        model.setWeek(dto.getWeek());
+        model.setDate(dto.getWeek());
         model.setTemplate(templateRepository.getReferenceById(dto.getTemplateId()));
 
         return model;
@@ -134,7 +134,7 @@ public class DocumentController {
 
         DocumentModel doc = new DocumentModel();
 
-        doc.setWeek(dto.getWeek());
+        doc.setDate(dto.getWeek());
         doc.setTemplate(templateRepository.getReferenceById(dto.getTemplateId()));
 
         documentRepository.save(doc);
@@ -176,10 +176,10 @@ public class DocumentController {
 
         LocalDate date = LocalDate.parse(value, dateFormatter);
 
-        doc.setWeek(date);
+        doc.setDate(date);
         documentRepository.save(doc);
 
-        return doc.getWeek();
+        return doc.getDate();
 
     }
 
@@ -277,7 +277,7 @@ public class DocumentController {
         if (opt.isPresent()) {
             var model = opt.get();
             model.setTemplate(templateRepository.getReferenceById(dto.getTemplateId()));
-            model.setWeek(dto.getWeek());
+            model.setDate(dto.getWeek());
             documentRepository.save(model);
             return "ok";
         } else {

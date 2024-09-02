@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 import pl.mo.planz.model.DocumentModel;
@@ -35,13 +36,19 @@ public class DocumentService {
         LocalDate date = LocalDate.now();
         if (series.getLastDocument() != null && series.getGenerationInterval() != null) {
 
-            date = series.getLastDocument().getWeek().plus(series.getGenerationInterval());
+            date = series.getLastDocument().getDate().plus(series.getGenerationInterval());
 
+        } else {
+            throw new RuntimeException("Can't guess document's date for series " + series.getName());
         }
+        return createForSeries(series, date);
+    }
+
+    public DocumentModel createForSeries(SeriesModel series, @NonNull LocalDate date) {
 
         DocumentModel document = new DocumentModel();
         document.setSeries(series);
-        document.setWeek(date);
+        document.setDate(date);
         document.setPrev(series.getLastDocument());
         document.setTemplate(series.getDefaultTemplate());
 
@@ -97,7 +104,7 @@ public class DocumentService {
         while (currentDocument.getNext() != null) {
             DocumentModel next = currentDocument.getNext();
 
-            if (next.getWeek().isAfter(LocalDate.now())) {
+            if (next.getDate().isAfter(LocalDate.now())) {
                 break;
             }
 
