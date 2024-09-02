@@ -21,8 +21,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import pl.mo.planz.DocumentGenerator;
+import pl.mo.planz.dto.AccessDTO;
 import pl.mo.planz.dto.AdminDTO;
 import pl.mo.planz.dto.DocumentDTO;
+import pl.mo.planz.dto.SeriesDTO;
 import pl.mo.planz.model.DocumentModel;
 import pl.mo.planz.model.SeriesModel;
 import pl.mo.planz.repositories.DocumentRepository;
@@ -31,6 +33,7 @@ import pl.mo.planz.repositories.FieldValueHistoryRepository;
 import pl.mo.planz.repositories.FieldValueRepository;
 import pl.mo.planz.repositories.IdentityRepository;
 import pl.mo.planz.repositories.PermissionRepository;
+import pl.mo.planz.repositories.ProfileAssignmentRepository;
 import pl.mo.planz.repositories.SeriesRepository;
 import pl.mo.planz.repositories.TemplateRepository;
 import pl.mo.planz.repositories.DatalistRepository;
@@ -80,6 +83,9 @@ public class AdminController {
     @Autowired
     AccessService accessService;
 
+    @Autowired
+    ProfileAssignmentRepository profileAssignmentRepository;
+
     @GetMapping(value="/admin/{seriesId}")
     public AdminDTO createDocumentForSeries(@RequestParam(name = "token", required = false) String token, @PathVariable("seriesId") UUID seriesId) {
         accessService.adminOrThrow(token);
@@ -91,11 +97,38 @@ public class AdminController {
 
         AdminDTO dto = new AdminDTO();
         dto.setSeriesName(seriesOpt.get().getName());
+        dto.setSeriesDescription(seriesOpt.get().getDescription());
+
+        var identities = identityRepository.findAll();
+        var accessList = new ArrayList<AccessDTO>();
+
+        for (var identity : identities) {
+            var assignments = profileAssignmentRepository.findByIdentityAndSeries(identity.getId(), seriesId);
+        }
+
         dto.setAccessList(new ArrayList<>());
 
         return dto;
 
     }
+
+    // @GetMapping(value="/series/list")
+    // public List<SeriesDTO> getSeriesList(@RequestParam(name = "token", required = false) String token) {
+    //     accessService.adminOrThrow(token);
+        
+    //     List<SeriesModel> seriesList =  seriesRepository.findAll();
+
+    //     var seriesDTO = seriesList.stream().map((model) -> {
+    //         var dto = new SeriesDTO();
+    //         dto.setId(model.getId().toString());
+    //         dto.setName(model.getName());
+    //         dto.setDescription(model.getDescription());
+    //         return dto;
+    //     }).collect(Collectors.toList());
+
+    //     return seriesDTO;
+
+    // }
 
 
 

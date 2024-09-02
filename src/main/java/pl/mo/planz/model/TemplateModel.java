@@ -10,6 +10,8 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Getter;
@@ -31,16 +33,18 @@ public class TemplateModel {
 
     @Getter
     @Setter
-    boolean isDefault = false;
-
-    @Getter
-    @Setter
     boolean active = true;
 
     @Getter
     @Setter
     @Column(length = 1000000)
     String content;
+
+    @Getter
+    @Setter
+    @ManyToOne(fetch=FetchType.LAZY)
+    @JoinColumn(nullable = false)
+    SeriesModel series;
 
     @OneToMany(mappedBy = "template", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @Getter

@@ -5,7 +5,8 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class AccessDTO {
-    String identityName;
-    
+public class SeriesDTO {
+    String id;
+    String name;
+    String description;
 }

@@ -26,10 +26,15 @@ public class SeriesModel {
     @Setter
     UUID id;
 
-    @Column(length = 1000)
+    @Column(length = 10000)
     @Getter
     @Setter
     String name;
+
+    @Column(length = 100000)
+    @Getter
+    @Setter
+    String description;
 
     @ManyToOne
     @Getter

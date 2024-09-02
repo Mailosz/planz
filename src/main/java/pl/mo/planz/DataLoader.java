@@ -95,22 +95,33 @@ public class DataLoader {
         loadList(listRepository, "lists/wszyscy.txt", "wszyscy", UUID.fromString("dce7a62d-3d5f-4c38-879a-c8abae8371a5"));
         loadList(listRepository, "lists/grupy.txt", "grupy", UUID.fromString("f662628b-b759-48b5-a898-637cfa273062"));
 
-        TemplateModel mainTemplate = loadTemplate(templateRepository, "templates/template.html", "Domyślny", UUID.fromString("5a69f438-f159-4299-8d6e-16792f45bf9e"));
-        TemplateModel tylkoNiedziela = loadTemplate(templateRepository, "templates/tylko-niedziela.html", "Tylko niedziela", UUID.fromString("86809da1-a02d-4050-90c4-90a849f4fbe3"));
-        TemplateModel tylkoWTygodniu = loadTemplate(templateRepository, "templates/tylko-w-tygodniu.html", "Tylko w tygodniu", UUID.fromString("fafb6f5d-8a2d-41d2-835f-bf6a4cf7efe1"));
+
 
         SeriesModel defaultSeries = new SeriesModel();
         defaultSeries.setName("Default series");
         defaultSeries.setGenerationInterval(Period.ofWeeks(1));
-        defaultSeries.setDefaultTemplate(mainTemplate);
+        //defaultSeries.setDefaultTemplate(mainTemplate);
         seriesRepository.save(defaultSeries);
 
         SeriesModel secondSeries = new SeriesModel();
         secondSeries.setName("Second series");
         secondSeries.setGenerationInterval(Period.ofWeeks(2));
-        secondSeries.setDefaultTemplate(tylkoNiedziela);
+        //secondSeries.setDefaultTemplate(tylkoNiedziela);
         seriesRepository.save(secondSeries);
 
+        loadTemplate(templateRepository, "templates/template.html", "Domyślny", UUID.fromString("5a69f438-f159-4299-8d6e-16792f45bf9e"), defaultSeries, secondSeries);
+        loadTemplate(templateRepository, "templates/tylko-niedziela.html", "Tylko niedziela", UUID.fromString("86809da1-a02d-4050-90c4-90a849f4fbe3"), defaultSeries);
+        loadTemplate(templateRepository, "templates/tylko-w-tygodniu.html", "Tylko w tygodniu", UUID.fromString("fafb6f5d-8a2d-41d2-835f-bf6a4cf7efe1"),  secondSeries);
+
+        //default templates
+        var templates = templateRepository.findTemplatesForSeries(defaultSeries.getId());
+        if (templates.size() > 0) {
+            defaultSeries.setDefaultTemplate(templates.get(0));
+        }
+        templates = templateRepository.findTemplatesForSeries(secondSeries.getId());
+        if (templates.size() > 0) {
+            secondSeries.setDefaultTemplate(templates.get(0));
+        }
         
         IdentityModel publicIdentity = createIdentity("public", IdentityType.TOKEN);
         IdentityModel editorIdentity = createIdentity("editor", IdentityType.TOKEN);
@@ -196,7 +207,7 @@ public class DataLoader {
     }
 
 
-    private TemplateModel loadTemplate(TemplateRepository templateRepo, String resName, String name, UUID uuid) {
+    private void loadTemplate(TemplateRepository templateRepo, String resName, String name, UUID uuid, SeriesModel... seriesArray) {
 
         InputStream templateStream = this.getClass().getClassLoader().getResourceAsStream(resName);
         BufferedReader reader = new BufferedReader(new InputStreamReader(templateStream, StandardCharsets.UTF_8));
@@ -213,12 +224,14 @@ public class DataLoader {
             } 
             String templateContent = sb.toString();
 
-            TemplateModel templateModel = new TemplateModel();
-            //templateModel.setId(uuid);
-            templateModel.setName(name);
-            templateController.parseTemplateAndSave(templateContent, templateModel);
-
-            return templateModel;
+            for (var series : seriesArray) {
+                
+                TemplateModel templateModel = new TemplateModel();
+                //templateModel.setId(uuid);
+                templateModel.setName(name);
+                templateModel.setSeries(series);
+                templateController.parseTemplateAndSave(templateContent, templateModel);
+            }
 
         } catch (IOException e) {
             // TODO Auto-generated catch block
@@ -230,8 +243,6 @@ public class DataLoader {
             System.out.println();
             System.out.println("-------------");
         }
-
-        return null;
     }
 
     private void loadList(DatalistRepository listRepo, String resName, String name, UUID uuid) {

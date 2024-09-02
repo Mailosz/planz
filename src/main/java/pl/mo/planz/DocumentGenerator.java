@@ -86,7 +86,7 @@ public class DocumentGenerator {
             if (defaultTemplate == null) {
 
                 //choosing template
-                List<TemplateModel> allTemplates = templateRepo.findAll();
+                List<TemplateModel> allTemplates = templateRepo.findTemplatesForSeries(series.getId());
 
                 if (allTemplates.size() == 0) {
                     System.out.println("No template");
@@ -94,12 +94,6 @@ public class DocumentGenerator {
                 }
 
                 defaultTemplate = allTemplates.get(0);
-                for (var template : allTemplates) {
-                    if (template.isDefault()) {
-                        defaultTemplate = template;
-                        break;
-                    }
-                }
             }
 
 

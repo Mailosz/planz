@@ -9,5 +9,6 @@ import lombok.Setter;
 @Setter
 public class AdminDTO {
     private String seriesName;
+    private String seriesDescription;
     private List<AccessDTO> accessList;
 }

@@ -8,9 +8,12 @@ import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjuster;
+import java.time.temporal.TemporalAdjusters;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -41,6 +44,7 @@ public class PageBuilder {
     static String htmlStartUrl = "page/htmlStart.html";
     static String editScriptUrl = "page/editScript.html";
     static String adminScriptUrl = "page/adminScript.html";
+    static String accessPopupScriptUrl = "page/accessPopupScript.js";
 
     static Map<String,String> resources = new HashMap<String,String>();
 
@@ -74,13 +78,13 @@ public class PageBuilder {
 
         String content = "<div id=\"top-panel\">";
 
-            content += "<button onclick=\"openAccessPopup('" + doc.getSeries().getId() + "');\">Zarządzaj dostępem</button>&emsp;";
+            content += "<button onclick=\"openAccessPopup('" + doc.getSeries().getId() + "');\">Zarządzaj dostępem</button>&emsp;<script>" + appendResource(accessPopupScriptUrl) + "</script>";
 
             content += "<label title=\"Udostępnij wszystkim\"><input type=\"checkbox\" id=\"showcheckbox\" class=\"switch\" " + (doc.isPublic()?"checked ":"") + "onchange=\"changePublic(event);\")>Pokaż</label>&emsp;";
             content += "<label title=\"Zezwól na edycję\"><input type=\"checkbox\" id=\"editcheckbox\" class=\"switch\" " + (doc.isEditable()?"checked ":"") + "onchange=\"changeEditable(event);\")>Edycja</label>&emsp;";
 
 
-            List<TemplateModel> templates = templateRepository.findAll();
+            List<TemplateModel> templates = templateRepository.findTemplatesForSeries(doc.getSeries().getId());
             content += "<label>Szablon: <select onchange=\"templateChange(event)\">";
             for (var template : templates) {
                 content += "<option" + (template == doc.getTemplate()?" selected":"") + " value=\"" + template.getId().toString() + "\">" + (StringUtils.isNullOrEmpty(template.getName())?template.getId().toString():template.getName()) + "</option>";
@@ -388,13 +392,13 @@ public class PageBuilder {
                 case 12 -> "grudnia";
                 default -> "";
             };
-            case "poniedziałek" -> doc.getDate().plus(0, ChronoUnit.DAYS).format(dateFormattter);
-            case "wtorek" -> doc.getDate().plus(1, ChronoUnit.DAYS).format(dateFormattter);
-            case "środa" -> doc.getDate().plus(2, ChronoUnit.DAYS).format(dateFormattter);
-            case "czwartek" -> doc.getDate().plus(3, ChronoUnit.DAYS).format(dateFormattter);
-            case "piątek" -> doc.getDate().plus(4, ChronoUnit.DAYS).format(dateFormattter);
-            case "sobota" -> doc.getDate().plus(5, ChronoUnit.DAYS).format(dateFormattter);
-            case "niedziela" -> doc.getDate().plus(6, ChronoUnit.DAYS).format(dateFormattter);
+            case "poniedziałek" -> doc.getDate().with(TemporalAdjusters.nextOrSame(DayOfWeek.MONDAY)).format(dateFormattter);
+            case "wtorek" -> doc.getDate().with(TemporalAdjusters.nextOrSame(DayOfWeek.TUESDAY)).format(dateFormattter);
+            case "środa" -> doc.getDate().with(TemporalAdjusters.nextOrSame(DayOfWeek.WEDNESDAY)).format(dateFormattter);
+            case "czwartek" -> doc.getDate().with(TemporalAdjusters.nextOrSame(DayOfWeek.THURSDAY)).format(dateFormattter);
+            case "piątek" -> doc.getDate().with(TemporalAdjusters.nextOrSame(DayOfWeek.FRIDAY)).format(dateFormattter);
+            case "sobota" -> doc.getDate().with(TemporalAdjusters.nextOrSame(DayOfWeek.SATURDAY)).format(dateFormattter);
+            case "niedziela" -> doc.getDate().with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY)).format(dateFormattter);
             default -> "";
         };
     }

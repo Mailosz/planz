@@ -18,4 +18,10 @@ public interface ProfileAssignmentRepository extends JpaRepository<ProfileAssign
     @Query("select assignment from ProfileAssignmentModel assignment where assignment.profile = ?1 and assignment.identity = ?2 and assignment.series = ?3")
     Optional<ProfileAssignmentModel> findByProfileAndIdentityAndSeries(ProfileModel profileId, IdentityModel identityId, SeriesModel seriesId);
 
+    @Query("select assignment from ProfileAssignmentModel assignment where assignment.identity.id = ?1 and assignment.series.id = ?2")
+    Optional<ProfileAssignmentModel> findByIdentityAndSeries(UUID identityId, UUID seriesId);
+
+    @Query("select assignment from ProfileAssignmentModel assignment where assignment.series = ?1")
+    Optional<ProfileAssignmentModel> findBySeries(ProfileModel profileId, IdentityModel identityId, SeriesModel seriesId);
+
 }
