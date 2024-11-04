@@ -452,27 +452,6 @@
         });
     }
 
-    function updateDocumentContent() {
-        let url = "/update/" + docId + "?token=" + token;
-        let request = new Request(url, {
-            method: "POST",
-        });
-        fetch(request).then((resp) => {
-            if (resp.ok) {
-                showResultPopup("success-popup", "Wykonano");
-
-                try {
-                    document.getElementById("doc-changed-label").style.display = "none";
-                } catch {
-
-                }
-            } else {
-                showResultPopup("fail-popup", "Błąd");
-            }
-            console.log(resp);
-        });
-    }
-
     function createNewDocument(seriesId, token) {
         createNewDocument(seriesId, token, false);
     }

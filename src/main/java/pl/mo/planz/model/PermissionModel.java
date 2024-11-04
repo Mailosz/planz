@@ -35,13 +35,7 @@ public class PermissionModel {
     @Setter
     String description;
 
-    @ManyToMany
-    @JoinTable(
-        name="permission_profile",
-        joinColumns = @JoinColumn(name = "permission_id"),
-        inverseJoinColumns = @JoinColumn(name = "profile_id")
-    )
-
+    @ManyToMany(mappedBy = "permissions")
     @Getter
     @Setter
     Set<ProfileModel> profiles; 

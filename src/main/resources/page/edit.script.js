@@ -1,8 +1,8 @@
-<script>
+
     var timeouts = {};
 
-    var token = document.getElementById("token-input").value;
-    var docId = document.getElementById("document-id-input").value;
+    var token = "@token@";
+    var docId = "@document_id@";
 
     var genTime = document.getElementById("document-gen-time");
 
@@ -282,5 +282,25 @@
 
     }
 
+    function updateDocumentContent() {
+        let url = "/update/" + docId + "?token=" + token;
+        let request = new Request(url, {
+            method: "POST",
+        });
+        fetch(request).then((resp) => {
+            if (resp.ok) {
+                showResultPopup("success-popup", "Wykonano");
+
+                try {
+                    document.getElementById("doc-changed-label").classList.remove("doc-contains-changes");
+                } catch {
+
+                }
+            } else {
+                showResultPopup("fail-popup", "Błąd");
+            }
+            console.log(resp);
+        });
+    }
+
     document.body.onbeforeunload = preventPageClosing;
-</script>

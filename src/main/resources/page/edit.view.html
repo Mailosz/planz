@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plan zebrań</title>
+    <link rel="stylesheet" href="/css/switch.css">
+    <link rel="stylesheet" href="/css/popup.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+    
+    @edit_script@
+    @admin_script@
+    <div id="top-panel">
+        <label title="Udostępnij wszystkim"><input type="checkbox" id="showcheckbox" class="switch" @public_checkbox_checked@ onchange="changePublic(event);">Pokaż</label>&emsp;
+        <label title="Zezwól na edycję"><input type="checkbox" id="editcheckbox" class="switch" @edit_checkbox_checked@ onchange="changeEditable(event);">Edycja</label>
+        &emsp;
+        @templates_list@   
+        &emsp;
+        <span id="doc-changed-label" class="@doc_contains_changes@">Dokument zawiera zmiany niewidoczne publicznie&ensp;
+            <button onclick='updateDocumentContent()'>Zapisz zmiany</button>
+        </span>     
+    </div>
+
+    @arrows@
+    <div id="doc-container" class="page edit-mode">
+        @content@
+    </div>
+    
+</body>
+</html>

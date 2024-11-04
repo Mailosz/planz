@@ -225,3 +225,11 @@
     padding: 1em 2em;
     border: none;
 }
+
+#doc-changed-label  {
+    visibility: hidden;
+}
+
+#doc-changed-label.doc-contains-changes  {
+    visibility: visible;
+}

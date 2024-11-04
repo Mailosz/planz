@@ -1,4 +1,4 @@
-package pl.mo.planz;
+package pl.mo.planz.templates;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -8,17 +8,16 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import lombok.Getter;
+import pl.mo.planz.TemplateParsingException;
+import pl.mo.planz.dto.TemplateDTO;
 import pl.mo.planz.dto.TemplateFieldDTO;
 import pl.mo.planz.model.FieldType;
 
 public class TemplateParser {
     
-    String template;
-    @Getter
-    List<TemplateFieldDTO> fields;
 
-    public TemplateParser(String template) {
-        this.template = template;
+    public TemplateParser() {
+
     }
 
 
@@ -29,9 +28,9 @@ public class TemplateParser {
      * @return parsed template with fields removed
      * @throws TemplateParsingException
      */
-    public String parse() throws TemplateParsingException {
+    public TemplateDTO parse(String template) throws TemplateParsingException {
 
-        fields = new ArrayList<>();
+        List<TemplateFieldDTO> fields = new ArrayList<>();
 
         StringBuilder sb = new StringBuilder(template.length());
         int a = 0;
@@ -129,6 +128,9 @@ public class TemplateParser {
         } while (a < template.length());
 
 
-        return sb.toString();
+        TemplateDTO parsedTemplateDTO = new TemplateDTO();
+        parsedTemplateDTO.setContent(sb.toString());
+        parsedTemplateDTO.setFields(fields);
+        return parsedTemplateDTO;
     }
 }

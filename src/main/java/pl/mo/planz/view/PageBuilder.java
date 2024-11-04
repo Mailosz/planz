@@ -21,12 +21,16 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
+import org.springframework.util.function.ThrowingSupplier;
 
 import pl.mo.planz.StringUtils;
+import pl.mo.planz.TemplateParsingException;
+import pl.mo.planz.dto.TemplateDTO;
 import pl.mo.planz.model.DocumentModel;
 import pl.mo.planz.model.FieldType;
 import pl.mo.planz.model.FieldValueModel;
@@ -35,6 +39,8 @@ import pl.mo.planz.model.TemplateFieldModel;
 import pl.mo.planz.model.TemplateModel;
 import pl.mo.planz.model.DatalistModel;
 import pl.mo.planz.repositories.TemplateRepository;
+import pl.mo.planz.templates.TemplateParser;
+import pl.mo.planz.utils.Lazy;
 
 @Component
 public class PageBuilder {
@@ -42,12 +48,42 @@ public class PageBuilder {
     static String htmlEnd = "</body></html>";
 
     static String htmlStartUrl = "page/htmlStart.html";
-    static String editScriptUrl = "page/editScript.html";
+    static String editScriptUrl = "page/edit.script.js";
     static String adminScriptUrl = "page/adminScript.html";
-    static String accessPopupScriptUrl = "page/accessPopupScript.js";
 
     static Map<String,String> resources = new HashMap<String,String>();
 
+    static Lazy<TemplateDTO> viewPageTemplate = new Lazy<TemplateDTO>(() -> {
+        return loadPageTemplate("page/page.view.html");
+    });
+
+    static Lazy<TemplateDTO> editPageTemplate = new Lazy<TemplateDTO>(() -> {
+        return loadPageTemplate("page/edit.view.html");
+    });    
+
+    static Lazy<TemplateDTO> editScriptTemplate = new Lazy<TemplateDTO>(() -> {
+        return loadPageTemplate("page/edit.script.js");
+    });   
+    
+    static Lazy<TemplateDTO> createPageTemplate = new Lazy<TemplateDTO>(() -> {
+        return loadPageTemplate("page/create.view.html");
+    });
+
+
+    public static TemplateDTO loadPageTemplate(String resource) {
+        TemplateParser tp = new TemplateParser();
+
+        var templateString = loadResource(resource);
+
+        TemplateDTO template;
+        try {
+            template = tp.parse(templateString);
+        } catch (TemplateParsingException ex) {
+            throw new RuntimeException(ex);
+        }
+        
+        return template;
+    }
     
     public static String loadResource(String resource) {
 
@@ -74,33 +110,6 @@ public class PageBuilder {
     TemplateRepository templateRepository;
 
 
-    private String buildAdminMenu(DocumentModel doc, boolean containsChanges) {
-
-        String content = "<div id=\"top-panel\">";
-
-            content += "<button onclick=\"openAccessPopup('" + doc.getSeries().getId() + "');\">Zarządzaj dostępem</button>&emsp;<script>" + appendResource(accessPopupScriptUrl) + "</script>";
-
-            content += "<label title=\"Udostępnij wszystkim\"><input type=\"checkbox\" id=\"showcheckbox\" class=\"switch\" " + (doc.isPublic()?"checked ":"") + "onchange=\"changePublic(event);\")>Pokaż</label>&emsp;";
-            content += "<label title=\"Zezwól na edycję\"><input type=\"checkbox\" id=\"editcheckbox\" class=\"switch\" " + (doc.isEditable()?"checked ":"") + "onchange=\"changeEditable(event);\")>Edycja</label>&emsp;";
-
-
-            List<TemplateModel> templates = templateRepository.findTemplatesForSeries(doc.getSeries().getId());
-            content += "<label>Szablon: <select onchange=\"templateChange(event)\">";
-            for (var template : templates) {
-                content += "<option" + (template == doc.getTemplate()?" selected":"") + " value=\"" + template.getId().toString() + "\">" + (StringUtils.isNullOrEmpty(template.getName())?template.getId().toString():template.getName()) + "</option>";
-            }
-            content += "</select></label>&emsp;";
-
-            content += "<button onclick='updateDocumentContent()'>Odśwież</button>";
-            if (containsChanges) {
-                content += "<span id=\"doc-changed-label\">&ensp;Dokument zawiera niezapisane zmiany</span>";
-            }
-            content += "</div>";
-            content += appendResource(adminScriptUrl);
-        
-        return content;
-    }
-
     private String buildArrows(String prev, String next) {
 
         StringBuilder sb = new StringBuilder();
@@ -114,7 +123,7 @@ public class PageBuilder {
         return sb.toString();
     }
 
-    private String appendResource(String url) {
+    private String readResource(String url) {
         if (resources.containsKey(url)) {
             return resources.get(url);
         } else {
@@ -126,30 +135,22 @@ public class PageBuilder {
 
 
     public  String buildCreatePage(SeriesModel series, String token) {
-        String content = appendResource(htmlStartUrl); 
 
-        String prev = null;
-        if (series.getLastDocument() != null) {
-            prev = "/edit/" + token + "/" + series.getLastDocument().getId();
-        }
 
-        content += buildArrows(prev, null);
+        String result = buildView(createPageTemplate.get(), Map.of(
+                "arrows", () -> {
+                    if (series.getLastDocument() != null) {
+                        return buildArrows("/edit/" + token + "/" + series.getLastDocument().getId(), null);
+                    } else {
+                        return "";
+                    }
+                },
+                "title", () -> series.getName(),
+                "series_id", () -> series.getId().toString(),
+                "token", () -> token
+            ));
 
-        content += """
-                <div id=\"doc-container\" class=\"page\">
-                    <div class="generate-new-page">
-                    <h1>%s</h1>
-                    <p>Brak nowych dokumentów</p>
-                        <button class="generate-button" onclick="createNewDocument('%s','%s');">Utwórz nowy dokument</button>
-                    </div>
-                </div>
-                """.formatted(series.getName(), series.getId(), token);
-                
-        content += hiddenInput("token-input", token);
-        content += appendResource(editScriptUrl);
-        content += appendResource(adminScriptUrl);
-        content += htmlEnd;
-        return content;
+        return result;
     }
 
     private String getDocumentAddress(String token, DocumentModel doc) {
@@ -158,61 +159,74 @@ public class PageBuilder {
 
     public String buildPage(boolean isAdmin, boolean isEdit, DocumentModel doc, String token, boolean containsChanges, String content) {
         
-        StringBuilder sb = new StringBuilder();
-        sb.append(appendResource(htmlStartUrl));
-
-        if (isAdmin) {
-            sb.append(buildAdminMenu(doc, containsChanges));
-        }
-
-        //arrows
-        String next = null;
-        String prev = null;
+        String result;
         if (isAdmin || isEdit) {
-            if (doc.getNext() != null) {
-                next = "/edit/" + getDocumentAddress(token, doc.getNext());
-            } else { // link to create page
-                next = "/create/" + token;
-            }
+            result = buildView(editPageTemplate.get(), Map.of(
+                "content", () -> content,
+                "public_checkbox_checked", () -> doc.isPublic() ? "checked" : "",
+                "edit_checkbox_checked", () -> doc.isEditable() ? "checked" : "",
+                "templates_list", () -> showTemplatesList(doc),
+                "doc_contains_changes", () -> containsChanges ? " doc-contains-changes" : "",
+                "admin_script", () -> isAdmin ? readResource(adminScriptUrl)  : "",
+                "edit_script", () -> {
+                    var editScript = buildView(editScriptTemplate.get(), Map.of("token", () -> token, "document_id", () -> doc.getId().toString()));
+                    return "<script>" + editScript + "</script>";
+                },
+                "token_input", () -> hiddenInput("token-input", token),
+                "arrows", () -> {
+                    String next = null;
+                    String prev = null;
 
-            if (doc.getPrev() != null) {
-                prev = "/edit/" + getDocumentAddress(token, doc.getPrev());
-            }
+                    if (doc.getNext() != null) {
+                        next = "/edit/" + getDocumentAddress(token, doc.getNext());
+                    } else { // link to create page
+                        next = "/create/" + token;
+                    }
+        
+                    if (doc.getPrev() != null) {
+                        prev = "/edit/" + getDocumentAddress(token, doc.getPrev());
+                    }
+                    return buildArrows(prev, next);
+                }
+            ));
         } else {
-            if (doc.getNext() != null && doc.getNext().isPublic()) {
-                next = "/view/" + getDocumentAddress(token, doc.getNext());
-            }
-
-            if (doc.getPrev() != null && doc.getPrev().isPublic()) {
-                prev = "/view/" + getDocumentAddress(token, doc.getPrev());
-            }
+            result = buildView(viewPageTemplate.get(), Map.of(
+                "content", () -> content,
+                "goto_current_week", () -> {
+                    var now = LocalDate.now();
+                    if (now.isBefore(doc.getDate()) || now.isAfter(doc.getDate().plusWeeks(1))) {
+                        return "<a href=\".?token=" + token + "\" class=\"goto-current-week\"></a>";
+                    } else {
+                        return "";
+                    }
+                },
+                "arrows", () -> {
+                    String next = null;
+                    String prev = null;
+                    if (doc.getNext() != null && doc.getNext().isPublic()) {
+                        next = "/view/" + getDocumentAddress(token, doc.getNext());
+                    }
+        
+                    if (doc.getPrev() != null && doc.getPrev().isPublic()) {
+                        prev = "/view/" + getDocumentAddress(token, doc.getPrev());
+                    }
+                    return buildArrows(prev, next);
+                }
+            ));
         }
 
-        sb.append(buildArrows(prev, next));
 
-        String className = null;
-        if (isAdmin || isEdit) {
-            className = "edit-mode";
-        } else {
-            className = "show-mode";
+        return result;
+    }
 
-            // go to current week
-            var now = LocalDate.now();
-            if (now.isBefore(doc.getDate()) || now.isAfter(doc.getDate().plusWeeks(1))) {
-                sb.append("<a href=\".?token=" + token + "\" class=\"goto-current-week\"></a>");
+    private String showTemplatesList(DocumentModel doc) {
+        List<TemplateModel> templates = templateRepository.findTemplatesForSeries(doc.getSeries().getId());
+            String content = "<label>Szablon: <select onchange=\"templateChange(event)\">";
+            for (var template : templates) {
+                content += "<option" + (template == doc.getTemplate()?" selected":"") + " value=\"" + template.getId().toString() + "\">" + (StringUtils.isNullOrEmpty(template.getName())?template.getId().toString():template.getName()) + "</option>";
             }
-        }
-
-        sb.append("<div id=\"doc-container\" class=\"page " + className +"\">");
-        sb.append(content);
-        sb.append("</div>");
-
-        if (isAdmin || isEdit) {
-            sb.append(appendResource(editScriptUrl));
-        }
-        sb.append(htmlEnd);
-
-        return sb.toString();
+            content += "</select></label>&emsp;";
+            return content;
     }
 
     static String hiddenInput(String id, String value) {
@@ -353,6 +367,21 @@ public class PageBuilder {
             default:
                 return value;
         }
+    }
+
+    public static String buildView(TemplateDTO template, Map<String, Supplier<String>> valueMap) {
+
+        template.getFields().sort((f1, f2) -> Integer.compare(f2.getPos(), f1.getPos()));
+
+        StringBuffer templateBuffer = new StringBuffer(template.getContent());
+        for (var field : template.getFields()) {
+
+            String staticValue = valueMap.get(field.getName()).get();
+
+            templateBuffer.insert(field.getPos(), staticValue);
+        }
+
+        return templateBuffer.toString();
     }
 
     public static String buildTemplateForView(DocumentModel docModel, Map<String, FieldValueModel> valueMap) {

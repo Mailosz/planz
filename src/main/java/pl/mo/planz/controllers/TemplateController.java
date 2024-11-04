@@ -19,8 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import pl.mo.planz.StringUtils;
-import pl.mo.planz.TemplateParser;
 import pl.mo.planz.TemplateParsingException;
+import pl.mo.planz.dto.TemplateDTO;
 import pl.mo.planz.dto.TemplateFieldDTO;
 import pl.mo.planz.model.FieldType;
 import pl.mo.planz.model.PermissionModel;
@@ -34,6 +34,7 @@ import pl.mo.planz.repositories.TemplateRepository;
 import pl.mo.planz.repositories.DatalistRepository;
 import pl.mo.planz.services.AccessService;
 import pl.mo.planz.services.IdentityService;
+import pl.mo.planz.templates.TemplateParser;
 
 @RestController
 @CrossOrigin
@@ -58,11 +59,11 @@ public class TemplateController {
     AccessService accessService;
     
     @Transactional
-    public void parseTemplateAndSave(String template, TemplateModel tm) throws TemplateParsingException {
-        TemplateParser tp = new TemplateParser(template);
-        template = tp.parse();
+    public void parseTemplateAndSave(String templateString, TemplateModel tm) throws TemplateParsingException {
+        TemplateParser tp = new TemplateParser();
+        TemplateDTO template = tp.parse(templateString);
         
-        tm.setContent(template);
+        tm.setContent(template.getContent());
 
         List<TemplateFieldModel> oldFields = tm.getFields();
         if (oldFields != null) {
@@ -74,7 +75,7 @@ public class TemplateController {
         }
 
 
-        List<TemplateFieldDTO> foundFields = tp.getFields();
+        List<TemplateFieldDTO> foundFields = template.getFields();
         List<TemplateFieldModel> newFields = new ArrayList<>(foundFields.size());
         for (var field : foundFields) {
             TemplateFieldModel tfm;

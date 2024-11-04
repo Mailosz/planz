@@ -3,13 +3,11 @@ package pl.mo.planz.controllers;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,9 +19,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import pl.mo.planz.dto.FieldDeclarationDTO;
 import pl.mo.planz.dto.DatalistItemDTO;
-import pl.mo.planz.model.FieldValueModel;
 import pl.mo.planz.model.DatalistModel;
 import pl.mo.planz.model.DatalistValueModel;
 import pl.mo.planz.repositories.DocumentRepository;
