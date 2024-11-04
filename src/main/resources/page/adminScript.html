@@ -452,40 +452,6 @@
         });
     }
 
-    function createNewDocument(seriesId, token) {
-        createNewDocument(seriesId, token, false);
-    }
-    canCreate = true;
-    function createNewDocument(seriesId, token, after) {
 
-        if (!canCreate) return;
-        canCreate = false;
-
-        let url = "/documents/create/" + seriesId + "?token=" + token;
-        if (after) {
-            url += "&after=" + after;
-        }
-        let request = new Request(url, {
-            method: "POST",
-        });
-
-        updateStatusIndicator("wait");
-        fetch(request).then((resp) => {
-            console.log(resp);
-            if (resp.ok) {
-                return resp.json();
-            } else {
-                throw resp.status;
-            }
-        }).then((uuid) => {
-            updateStatusIndicator("success");
-            location.replace("/edit/" + token + "/" + uuid );
-        }).catch((error) => {
-            //showResultPopup("fail-popup", "Nie udało się utworzyć dokumentu ( " + error + " )");
-            console.log(error);
-            updateStatusIndicator("error");
-        }).finally(() => canCreate = true);
-
-    }
 
 </script>

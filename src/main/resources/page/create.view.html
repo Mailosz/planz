@@ -18,6 +18,87 @@
         <p>Brak nowych dokumentów</p>
             <button class="generate-button" onclick="createNewDocument('@series_id@','@token@');">Utwórz nowy dokument</button>
         </div>
+        <script>
+            function createNewDocument(seriesId, token) {
+                createNewDocument(seriesId, token, false);
+            }
+            canCreate = true;
+            function createNewDocument(seriesId, token, after) {
+
+                if (!canCreate) return;
+                canCreate = false;
+
+                let url = "/documents/create/" + seriesId + "?token=" + token;
+                if (after) {
+                    url += "&after=" + after;
+                }
+                let request = new Request(url, {
+                    method: "POST",
+                });
+
+                updateStatusIndicator("wait");
+                fetch(request).then((resp) => {
+                    console.log(resp);
+                    if (resp.ok) {
+                        return resp.json();
+                    } else {
+                        throw resp.status;
+                    }
+                }).then((uuid) => {
+                    updateStatusIndicator("success");
+                    location.replace("/edit/" + token + "/" + uuid );
+                }).catch((error) => {
+                    //showResultPopup("fail-popup", "Nie udało się utworzyć dokumentu ( " + error + " )");
+                    console.log(error);
+                    updateStatusIndicator("error");
+                }).finally(() => canCreate = true);
+
+            }
+
+            function updateStatusIndicator(status) {
+
+            let indicator = document.getElementById("status-indicator");
+
+            if (indicator == null) {
+                indicator = document.createElement("div");
+                indicator.id = "status-indicator";
+
+                let cb = document.createElement("button");
+                cb.innerHTML = "&#215;";
+                cb.onclick = () => {indicator.classList.add("closed");};
+                indicator.appendChild(cb);
+
+                document.body.append(indicator);
+            }
+
+            if (indicator != null) {
+                indicator.classList.remove("closed");
+
+                switch (status) {
+                    case "success":
+                        indicator.classList.add("success");
+                        indicator.classList.remove("wait");
+                        indicator.classList.remove("error");
+                        break;
+                    case "wait":
+                        indicator.classList.remove("success");
+                        indicator.classList.add("wait");
+                        indicator.classList.remove("error");
+                        break;
+                    case "error":
+                        indicator.classList.remove("success");
+                        indicator.classList.remove("wait");
+                        indicator.classList.add("error");
+                        break;
+                    default:
+                        indicator.classList.remove("success");
+                        indicator.classList.remove("wait");
+                        indicator.classList.remove("error");
+                        break;
+                } 
+            }
+            }
+        </script>
     </div>
 </body>
 </html>
