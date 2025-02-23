@@ -22,6 +22,7 @@ import pl.mo.planz.services.AccessService;
 import pl.mo.planz.services.DocumentService;
 import pl.mo.planz.services.IdentityService;
 import pl.mo.planz.view.PageBuilder;
+import pl.mo.planz.view.TemplatesManager;
 
 import java.time.LocalDate;
 import java.util.HashMap;
@@ -130,7 +131,6 @@ public class ViewController {
         AccessObject access = accessService.getAccess(token, "edit");
         return openDocument(documentRepository.findById(docId).or(()-> getCurrentDocument(access.getSeries())), access, ViewMode.Edit);
     }
-
 
     private Optional<DocumentModel> getCurrentDocument(SeriesModel series) {
 

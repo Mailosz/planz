@@ -51,60 +51,7 @@ public class PageBuilder {
     static String editScriptUrl = "page/edit.script.js";
     static String adminScriptUrl = "page/adminScript.html";
 
-    static Map<String,String> resources = new HashMap<String,String>();
 
-    static Lazy<TemplateDTO> viewPageTemplate = new Lazy<TemplateDTO>(() -> {
-        return loadPageTemplate("page/page.view.html");
-    });
-
-    static Lazy<TemplateDTO> editPageTemplate = new Lazy<TemplateDTO>(() -> {
-        return loadPageTemplate("page/edit.view.html");
-    });    
-
-    static Lazy<TemplateDTO> editScriptTemplate = new Lazy<TemplateDTO>(() -> {
-        return loadPageTemplate("page/edit.script.js");
-    });   
-    
-    static Lazy<TemplateDTO> createPageTemplate = new Lazy<TemplateDTO>(() -> {
-        return loadPageTemplate("page/create.view.html");
-    });
-
-
-    public static TemplateDTO loadPageTemplate(String resource) {
-        TemplateParser tp = new TemplateParser();
-
-        var templateString = loadResource(resource);
-
-        TemplateDTO template;
-        try {
-            template = tp.parse(templateString);
-        } catch (TemplateParsingException ex) {
-            throw new RuntimeException(ex);
-        }
-        
-        return template;
-    }
-    
-    public static String loadResource(String resource) {
-
-        InputStream inputStream = PageBuilder.class.getClassLoader().getResourceAsStream(resource);
-
-        StringBuilder tb = new StringBuilder(10000);
-        try (Reader reader = new BufferedReader(new InputStreamReader(inputStream, Charset.forName(StandardCharsets.UTF_8.name())))) {
-            int c = 0;
-            while ((c = reader.read()) != -1) {
-                tb.append((char) c);
-            }
-
-            return tb.toString();
-        } catch (IOException e) {
-            System.out.println("Error loading resource: " + resource);
-            e.printStackTrace();
-
-            return null;
-        }
-        
-    }
 
     @Autowired
     TemplateRepository templateRepository;
@@ -123,21 +70,11 @@ public class PageBuilder {
         return sb.toString();
     }
 
-    private String readResource(String url) {
-        if (resources.containsKey(url)) {
-            return resources.get(url);
-        } else {
-            var resource = loadResource(url);
-            resources.put(url, resource);
-            return resource;
-        }
-    }
-
 
     public  String buildCreatePage(SeriesModel series, String token) {
 
 
-        String result = buildView(createPageTemplate.get(), Map.of(
+        String result = buildView(TemplatesManager.getTemplate("page/create.view.html"), Map.of(
                 "arrows", () -> {
                     if (series.getLastDocument() != null) {
                         return buildArrows("/edit/" + token + "/" + series.getLastDocument().getId(), null);
@@ -161,15 +98,15 @@ public class PageBuilder {
         
         String result;
         if (isAdmin || isEdit) {
-            result = buildView(editPageTemplate.get(), Map.of(
+            result = buildView(TemplatesManager.getTemplate("page/edit.view.html"), Map.of(
                 "content", () -> content,
                 "public_checkbox_checked", () -> doc.isPublic() ? "checked" : "",
                 "edit_checkbox_checked", () -> doc.isEditable() ? "checked" : "",
                 "templates_list", () -> showTemplatesList(doc),
                 "doc_contains_changes", () -> containsChanges ? " doc-contains-changes" : "",
-                "admin_script", () -> isAdmin ? readResource(adminScriptUrl)  : "",
+                "admin_script", () -> isAdmin ? ResourcesManager.getResource(adminScriptUrl)  : "",
                 "edit_script", () -> {
-                    var editScript = buildView(editScriptTemplate.get(), Map.of("token", () -> token, "document_id", () -> doc.getId().toString()));
+                    var editScript = buildView(TemplatesManager.getTemplate("page/edit.script.js"), Map.of("token", () -> token, "document_id", () -> doc.getId().toString()));
                     return "<script>" + editScript + "</script>";
                 },
                 "token_input", () -> hiddenInput("token-input", token),
@@ -190,7 +127,7 @@ public class PageBuilder {
                 }
             ));
         } else {
-            result = buildView(viewPageTemplate.get(), Map.of(
+            result = buildView(TemplatesManager.getTemplate("page/page.view.html"), Map.of(
                 "content", () -> content,
                 "goto_current_week", () -> {
                     var now = LocalDate.now();
